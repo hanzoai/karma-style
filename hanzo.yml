@@ -1,0 +1,27 @@
+# Canonical CI/CD config for hanzoai/karma-style — read by both the hanzoai/ci
+# reusable workflow (.github/workflows/cicd.yml) and platform.hanzo.ai.
+# One image (a static site served by hanzoai/static), rolled onto the
+# `karma-style` operator Service CR (universe: infra/k8s/operator/crs/karma-style.yaml).
+#
+# No `test:` block: the Dockerfile IS the gate — a broken COPY/base fails the
+# image, so nothing broken ships (same pattern as hanzoai/world + gallery).
+
+images:
+  - name: karma-style
+    context: .
+    dockerfile: Dockerfile
+    repo: ghcr.io/hanzoai/karma-style
+
+# Deploy: roll the freshly-built image onto the `karma-style` Service CR. Fires
+# only on `main` (+ tags); PRs and forks build but never deploy.
+deploy:
+  cluster: do-sfo3-hanzo-k8s
+  namespace: hanzo
+  "on": [main]
+  services:
+    - name: karma-style
+      image: karma-style
+
+kms:
+  path: /deploy
+  environment: prod

@@ -1,12 +1,12 @@
 // Karma Bikinis — static content pages. Real, professional boilerplate for a
-// Bali-based swimwear DTC brand. Legal pages are marked template-for-review
+// San Francisco-based swimwear DTC brand. Legal pages are marked template-for-review
 // (not legal advice) and should be reviewed by counsel before relying on them.
 window.KARMA_PAGES = {
   about: {
     title: "About Karma",
     eyebrow: "The House",
     html: `
-      <p class="lead">Karma Bikinis is a small swimwear house designing from Bali — sculpted lines, honest colour, and pieces made to be photographed and worn everywhere from the pool deck to the front row.</p>
+      <p class="lead">Karma Bikinis is a small swimwear house designing from San Francisco — sculpted lines, honest colour, and pieces made to be photographed and worn everywhere from the pool deck to the front row.</p>
       <p>We started with a simple idea: swimwear should look as good in the frame as it feels in the water. Every style is cut clean, finished by hand in small runs, and shot as a full story — front, back, and in the wild — so you know exactly how it falls before it ships.</p>
       <p>Our 2026 collection is eight silhouettes in crushed velvet, botanical mesh and matte lycra. No filters, no shortcuts — the only colour on this page is the swimwear itself.</p>
       <h3>Designed by Antje Worring</h3>
@@ -24,7 +24,7 @@ window.KARMA_PAGES = {
       <p><b>Email</b><br><a href="mailto:hello@karma.style">hello@karma.style</a></p>
       <p><b>Orders &amp; exchanges</b><br><a href="mailto:hello@karma.style">hello@karma.style</a> — please include your order number.</p>
       <p><b>Studio hours</b><br>Monday–Friday. We aim to reply within 1–2 business days. We are closed on major holidays.</p>
-      <p><b>Based in</b><br>Bali, Indonesia — shipping worldwide.</p>`
+      <p><b>Based in</b><br>San Francisco, California — shipping worldwide.</p>`
   },
   shipping: {
     title: "Shipping",
@@ -35,7 +35,7 @@ window.KARMA_PAGES = {
       <h3>Processing</h3>
       <p>We will contact you if an item is out of stock or if we need additional information to verify your order. Orders placed after 11am (local) on Friday and over the weekend are processed the following business week. Pre-order items typically ship within 2–3 weeks.</p>
       <h3>Delivery</h3>
-      <p>We ship worldwide from Bali. Delivery times vary by destination and carrier. Any customs duties or import taxes are the responsibility of the recipient.</p>
+      <p>We ship worldwide from San Francisco. Delivery times vary by destination and carrier. Any customs duties or import taxes are the responsibility of the recipient.</p>
       <h3>Lost or stolen packages</h3>
       <p>Karma Bikinis is not responsible for lost or stolen packages confirmed delivered by tracking, or for packages refused by the recipient. Please ensure your shipping address is correct at checkout.</p>
       <p class="review-note">Template shipping terms for review — please confirm rates, carriers and timelines before publishing.</p>`

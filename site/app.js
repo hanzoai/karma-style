@@ -100,7 +100,7 @@
       '<div class="acc">' +
         '<details open><summary>Description</summary><div class="body">' + p.blurb + '</div></details>' +
         '<details><summary>Composition &amp; Care</summary><div class="body">' + p.fabric + '. Hand-wash cold, lay flat to dry. Rinse after sun, salt or chlorine. Fully lined; adjustable where noted.</div></details>' +
-        '<details><summary>Shipping &amp; Returns</summary><div class="body">Ships from Bali in 3–5 business days with tracking. Exchanges or store credit within 10 days of delivery. See <a href="/shipping" data-link>Shipping</a> &amp; <a href="/returns" data-link>Returns</a>.</div></details>' +
+        '<details><summary>Shipping &amp; Returns</summary><div class="body">Ships from San Francisco in 3–5 business days with tracking. Exchanges or store credit within 10 days of delivery. See <a href="/shipping" data-link>Shipping</a> &amp; <a href="/returns" data-link>Returns</a>.</div></details>' +
       '</div>';
     byId("pdSizes").addEventListener("click", function (e) {
       var b = e.target.closest("button"); if (!b) return; pdSize = b.dataset.size;

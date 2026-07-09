@@ -47,6 +47,23 @@ header.solid .logo .lw{display:none} header.solid .logo .lb{display:block}
 /* on hero (transparent) -> white logo */
 header.on-hero .logo .lw{display:block} header.on-hero .logo .lb{display:none}
 
+/* ---------- mobile menu (full-screen white overlay) ---------- */
+.mmenu{position:fixed;inset:0;z-index:80;background:#fff;display:flex;flex-direction:column;
+  padding:0 var(--gutter) 40px;transform:translateY(-101%);opacity:0;pointer-events:none;
+  transition:transform .4s cubic-bezier(.4,0,.1,1),opacity .3s ease}
+.mmenu.open{transform:none;opacity:1;pointer-events:auto}
+.mm-top{display:flex;align-items:center;justify-content:space-between;height:var(--hh)}
+.mm-top .logo{height:22px;display:block}
+.mm-top .logo img{height:100%;width:auto;display:block}
+.mm-close{background:none;border:0;font-size:23px;line-height:1;cursor:pointer;color:var(--fg)}
+.mm-nav{display:flex;flex-direction:column;margin-top:22px}
+.mm-nav a{font-size:clamp(34px,11vw,54px);font-weight:600;letter-spacing:-.02em;line-height:1.16;
+  color:var(--fg);padding:6px 0}
+.mm-foot{margin-top:auto;display:flex;flex-wrap:wrap;gap:16px 22px;border-top:1px solid var(--line);padding-top:22px}
+.mm-foot a{font-family:"Geist Mono",monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut)}
+.mm-foot a:hover{color:var(--fg)}
+@media(min-width:641px){.mmenu{display:none}}
+
 /* ---------- hero ---------- */
 .hero{position:relative;height:100vh;min-height:640px;display:flex;align-items:flex-end;overflow:hidden;background:#111}
 .hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 30%}

@@ -10,7 +10,8 @@
 <meta property="og:image" content="/img/hero/hero.webp">
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#ffffff">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='92'%3E%F0%9F%8C%90%3C/text%3E%3C/svg%3E">
+<link rel="icon" type="image/png" sizes="512x512" href="/favicon.png?v=5">
+<link rel="apple-touch-icon" href="/favicon.png?v=5">
 <link rel="preload" href="/fonts/GeistVF.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/style.css">
 </head>
@@ -33,6 +34,26 @@
     <button class="menu-btn" id="menuBtn" aria-label="Menu">☰</button>
   </div>
 </header>
+
+<!-- ============ MOBILE MENU ============ -->
+<div class="mmenu" id="mmenu" aria-hidden="true">
+  <div class="mm-top">
+    <a class="logo" href="/" data-link aria-label="Karma"><img src="/img/brand/karma-black.png" alt="Karma"></a>
+    <button class="mm-close" id="mmClose" aria-label="Close menu">✕</button>
+  </div>
+  <nav class="mm-nav">
+    <a href="/shop" data-link>Shop</a>
+    <a href="/#lookbook" data-link>Lookbook</a>
+    <a href="https://tryon.karma.style">Virtual Try-On</a>
+    <a href="/about" data-link>About</a>
+  </nav>
+  <div class="mm-foot">
+    <a href="/shipping" data-link>Shipping</a>
+    <a href="/returns" data-link>Returns</a>
+    <a href="mailto:hello@karma.style">Contact</a>
+    <a href="https://www.instagram.com/karma_bikinis" target="_blank" rel="noopener">Instagram</a>
+  </div>
+</div>
 
 <!-- ============ HOME ============ -->
 <div class="home">

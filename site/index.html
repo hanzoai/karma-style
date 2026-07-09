@@ -10,10 +10,12 @@
 <meta property="og:image" content="/img/hero/hero.webp">
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#ffffff">
-<link rel="icon" type="image/png" sizes="512x512" href="/favicon.png?v=5">
-<link rel="apple-touch-icon" href="/favicon.png?v=5">
+<link rel="icon" type="image/png" sizes="512x512" href="/favicon.png?v=042">
+<link rel="apple-touch-icon" href="/favicon.png?v=042">
 <link rel="preload" href="/fonts/GeistVF.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/style.css">
+<!-- Fixed-name assets are edge-cached 24h (hanzoai/spa max-age=86400); index.html
+     is no-cache. Bump ?v= on every release so CSS/JS never serve stale. -->
+<link rel="stylesheet" href="/style.css?v=042">
 </head>
 <body>
 
@@ -220,9 +222,9 @@
 
 <div class="toast" id="toast"></div>
 
-<script src="/content.js"></script>
-<script src="/commerce.js"></script>
-<script src="/app.js"></script>
+<script src="/content.js?v=042"></script>
+<script src="/commerce.js?v=042"></script>
+<script src="/app.js?v=042"></script>
 <!-- Analytics (Hanzo Analytics, scoped to the Karma org) -->
 <script defer src="https://analytics.hanzo.ai/script.js" data-website-id="019cc3e3-0062-48e1-9f8d-3110079881d9" data-domains="karma.style,www.karma.style"></script>
 <script>window.karmaTrack=function(n,d){try{window.umami&&window.umami.track(n,d||{})}catch(e){}};</script>

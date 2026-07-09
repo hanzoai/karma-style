@@ -1,0 +1,42 @@
+{
+  "_meta": {
+    "note": "Curated catalog metadata for karma.style (name, price, tag, blurb, fabric, fit). The IMAGE map + which shots are live come from the ONE asset-library manifest — see .library. A studio re-render + gallery save updates that manifest; the next site build regenerates img/<slug>/*.webp from its APPROVED shots. Live pricing/inventory/checkout come from Hanzo Commerce (store: karma) at runtime; this file is the display fallback + curated copy.",
+    "currency": "USD",
+    "imageBase": "/img",
+    "roles": ["front", "back", "tq", "flat", "ghost", "life1", "life2", "editorial"],
+    "library": {
+      "manifest": "hz:hanzo-studio/orgs/karma/output/library.json",
+      "manifestUrl": "https://s3.hanzo.ai/hanzo-studio/orgs/karma/output/library.json",
+      "prefix": "hz:hanzo-studio/orgs/karma/output/",
+      "designPath": "designs/<slug>/<kind>_<role>.png",
+      "assetSchema": ["path", "design", "kind", "role", "status", "caption?", "tags[]", "updatedAt"],
+      "consume": "At BUILD (CI has the hz: rclone creds, same s3-credentials Secret as the studio mirror): pull the manifest, take assets where status=='approved' and kind in [ecom,product,lifestyle], map entry.role -> /img/<slug>/<entry.role>.webp (download entry.path under prefix, convert PNG->webp). Ignore marketing/* — that's the socials/blog queue, not the catalog. products.json (this file) supplies name/price/copy; the manifest supplies the images."
+    }
+  },
+  "products": [
+    { "slug": "valentina", "name": "Valentina", "price": 158, "tag": "Signature",
+      "blurb": "Deep-wine crushed velvet with gold open-heart hardware, criss-cross hip straps and a full thigh-wrap garter. Our most-requested strappy set.",
+      "fabric": "Crushed velvet · gold hardware", "fit": "Adjustable halter · high-leg" },
+    { "slug": "redonepiece", "name": "Scarlet One-Piece", "price": 168, "tag": "Signature",
+      "blurb": "A clean scarlet maillot with a sculpted open back. Seamless, sun-ready, and made to photograph.",
+      "fabric": "Matte scarlet lycra", "fit": "Full one-piece · open back" },
+    { "slug": "festival_fuchsia", "name": "Festival Fuchsia", "price": 142, "tag": "New",
+      "blurb": "Vivid hot-fuchsia with a soft draped top and tie-side brief. Built for sun, salt and long days.",
+      "fabric": "Hot-fuchsia stretch", "fit": "Draped triangle · tie-side" },
+    { "slug": "neptune_green", "name": "Neptune Green", "price": 124, "tag": "New",
+      "blurb": "Deep sea-green with a sculpted underwire and clean high-leg lines. Editorial by day, dinner by night.",
+      "fabric": "Sea-green stretch", "fit": "Underwire · high-leg" },
+    { "slug": "floralmesh", "name": "Floral Mesh", "price": 138, "tag": "New",
+      "blurb": "Botanical mesh over a lined base. Sheer where it should be, structured where it counts.",
+      "fabric": "Printed floral mesh", "fit": "Bralette · mid-rise" },
+    { "slug": "stripedgem", "name": "Striped Gem", "price": 148, "tag": "New",
+      "blurb": "Jewel-tone stripe with a retro balconette cut — a pool-deck classic, remade.",
+      "fabric": "Jewel-stripe knit", "fit": "Balconette · full brief" },
+    { "slug": "ches", "name": "Ches", "price": 128, "tag": "New",
+      "blurb": "Architectural strap-work in matte black. Minimal, sharp, and quietly confident.",
+      "fabric": "Matte black stretch", "fit": "Strappy bralette · high-leg" },
+    { "slug": "red", "name": "Scarlet", "price": 98, "tag": "New",
+      "blurb": "The essential scarlet two-piece. Clean triangle, clean brief, endlessly wearable.",
+      "fabric": "Matte scarlet lycra", "fit": "Triangle · classic brief" }
+  ]
+}

@@ -4,154 +4,207 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Karma Bikinis — Swimwear, made to photograph</title>
-<meta name="description" content="Karma Bikinis — elegant, editorial-grade swimwear. The new collection: eight designs in velvet, mesh and matte lycra.">
+<meta name="description" content="Karma Bikinis — high-fashion swimwear designed in Bali by Antje Worring. The 2026 collection: eight designs in velvet, mesh and matte lycra.">
 <meta property="og:title" content="Karma Bikinis">
-<meta property="og:description" content="The new collection — eight designs, made to photograph.">
+<meta property="og:description" content="The 2026 collection — eight designs, made to photograph.">
 <meta property="og:image" content="/img/hero/hero.webp">
 <meta property="og:type" content="website">
-<meta name="theme-color" content="#0a0a0b">
+<meta name="theme-color" content="#ffffff">
 <link rel="icon" href="/favicon.png">
+<link rel="preload" href="/fonts/GeistVF.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/style.css">
 </head>
 <body>
 
-<header>
-  <div class="wrap nav">
-    <a href="#top" class="brand">Karma<b>.</b></a>
-    <span class="spacer"></span>
-    <a class="link hide-sm" href="#collection">Collection</a>
-    <a class="link hide-sm" href="#lookbook">Lookbook</a>
-    <a class="link hide-sm" href="https://tryon.karma.style">Virtual Try-On</a>
-    <a class="link hide-sm" href="#story">Story</a>
-    <button class="cart-btn" id="cartOpen">Bag <span class="count" id="cartCount">0</span></button>
-    <button class="menu-toggle" id="menuToggle" aria-label="menu">☰</button>
+<header id="hdr" class="on-hero">
+  <div class="wrap">
+    <a class="logo" href="/" data-link aria-label="Karma">
+      <img class="lb" src="/img/brand/karma-black.png" alt="Karma">
+      <img class="lw" src="/img/brand/karma-white.png" alt="Karma">
+    </a>
+    <nav>
+      <a href="/shop" data-link>Shop</a>
+      <a href="/#lookbook" data-link>Lookbook</a>
+      <a href="https://tryon.karma.style">Virtual Try-On</a>
+      <a href="/about" data-link>About</a>
+    </nav>
+    <span class="sp"></span>
+    <button class="bag" id="bagBtn">Bag <span class="n" id="bagCount">0</span></button>
+    <button class="menu-btn" id="menuBtn" aria-label="Menu">☰</button>
   </div>
 </header>
 
-<a id="top"></a>
-<div class="hero">
-  <img src="/img/hero/hero.webp" alt="Karma Bikinis signature scarlet one-piece">
-  <div class="wrap inner">
-    <div class="eyebrow">The New Collection · 2026</div>
-    <h1>Swimwear made to photograph.</h1>
-    <p>Eight designs in crushed velvet, botanical mesh and matte lycra — cut clean, finished by hand, shot for the light.</p>
-    <div class="cta-row">
-      <a href="#collection" class="btn">Shop the collection</a>
-      <a href="https://tryon.karma.style" class="btn ghost">Try it on →</a>
-    </div>
-  </div>
-</div>
-
-<main class="wrap">
-
-<section class="blk" id="collection">
-  <div class="sec-head">
-    <div>
-      <div class="eyebrow">The Collection</div>
-      <h2>Eight to choose from.</h2>
-    </div>
-    <p>Every piece photographed front, back and in the wild. Hover to turn.</p>
-  </div>
-  <div class="grid" id="grid"></div>
-</section>
-
-<section class="blk" id="lookbook">
-  <div class="sec-head">
-    <div>
-      <div class="eyebrow">Lookbook</div>
-      <h2>On location.</h2>
-    </div>
-    <p>Editorial and lifestyle from the 2026 shoot.</p>
-  </div>
-  <div class="look" id="look"></div>
-</section>
-
-</main>
-
-<section class="tryon-band">
-  <div class="wrap">
-    <div class="eyebrow">Virtual Try-On · Beta</div>
-    <h2>See it on you.</h2>
-    <p>Upload a photo, pick a design, and our studio renders you in it — in seconds, on our own GPUs.</p>
-    <a href="https://tryon.karma.style" class="btn gold">Open the Try-On studio →</a>
-  </div>
-</section>
-
-<section class="blk" id="story">
-  <div class="wrap story">
-    <div>
-      <div class="eyebrow">The House</div>
-      <h2>Karma is swimwear with an eye for the frame.</h2>
-      <p>We design for the moment the shutter opens — sculpted lines, honest color, hardware that catches the light. Small runs, made carefully, worn everywhere from the pool deck to the front row.</p>
-      <p>The 2026 collection is our cleanest yet: eight silhouettes, each shot as a full story so you know exactly how it falls before it ships.</p>
-      <div class="pillars">
-        <div><b>Hand-finished</b><span>Small-batch runs</span></div>
-        <div><b>True color</b><span>Shot, not filtered</span></div>
-        <div><b>Made to move</b><span>Chlorine & salt ready</span></div>
+<!-- ============ HOME ============ -->
+<div class="home">
+  <section class="hero" id="top">
+    <img src="/img/hero/hero.webp" alt="Karma Bikinis — scarlet one-piece">
+    <div class="wrap inner">
+      <div class="eyebrow">The 2026 Collection</div>
+      <h1>Swimwear made to photograph.</h1>
+      <p>Eight designs in crushed velvet, botanical mesh and matte lycra — cut clean, finished by hand in Bali, shot for the light.</p>
+      <div class="cta">
+        <a href="/shop" data-link class="btn inv">Shop the collection</a>
+        <a href="https://tryon.karma.style" class="btn line" style="color:#fff;border-color:#fff">Virtual Try-On</a>
       </div>
     </div>
-    <div class="por"><img src="/img/hero/portrait.webp" alt="Karma editorial portrait" loading="lazy"></div>
+  </section>
+
+  <section class="press">
+    <div class="wrap">
+      <span class="lab">As seen in</span>
+      <div class="marks">
+        <img src="/img/brand/press-vogue.png" alt="Vogue" loading="lazy">
+        <img src="/img/brand/press-cosmopolitan.png" alt="Cosmopolitan" loading="lazy">
+        <img src="/img/brand/press-daily-mail.png" alt="Daily Mail" loading="lazy">
+        <img src="/img/brand/press-miami-fashion-week.png" alt="Miami Fashion Week" loading="lazy">
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="shop">
+    <div class="wrap">
+      <div class="sec-head">
+        <div><div class="eyebrow">The Collection</div><h2>Eight to choose from.</h2></div>
+        <p>Every piece photographed front, back and in the wild. Hover to turn.</p>
+      </div>
+      <div class="grid" id="grid"></div>
+    </div>
+  </section>
+
+  <section class="sec" id="lookbook">
+    <div class="wrap">
+      <div class="sec-head">
+        <div><div class="eyebrow">Lookbook</div><h2>On location.</h2></div>
+        <p>Editorial and lifestyle from the 2026 shoot.</p>
+      </div>
+      <div class="look" id="look"></div>
+    </div>
+  </section>
+
+  <section class="sec" style="padding:0" id="story">
+    <div class="split">
+      <div class="txt">
+        <div class="eyebrow">The House</div>
+        <h2>Swimwear with an eye for the frame.</h2>
+        <p>Designed in Bali by Antje Worring, Karma is cut for the moment the shutter opens — sculpted lines, honest colour, hardware that catches the light.</p>
+        <p>Small runs, made carefully, worn everywhere from the pool deck to the front row.</p>
+        <div class="pillars">
+          <div><b>Hand-finished</b><span>Small-batch runs</span></div>
+          <div><b>True colour</b><span>Shot, not filtered</span></div>
+          <div><b>Made to move</b><span>Salt &amp; chlorine ready</span></div>
+        </div>
+        <div style="margin-top:30px"><a href="/about" data-link class="btn line">Read our story</a></div>
+      </div>
+      <div class="pic"><img src="/img/hero/portrait.webp" alt="Karma editorial" loading="lazy"></div>
+    </div>
+  </section>
+
+  <section class="quote">
+    <div class="wrap">
+      <blockquote>Design that serves women and improves their quality of life.</blockquote>
+      <div class="cite">Antje Worring · Founder</div>
+    </div>
+  </section>
+
+  <section class="tryon">
+    <div class="wrap">
+      <div class="eyebrow">Virtual Try-On · Beta</div>
+      <h2>See it on you.</h2>
+      <p>Upload a photo, pick a design, and our studio renders you in it — in seconds, on our own GPUs.</p>
+      <a href="https://tryon.karma.style" class="btn inv">Open the Try-On studio</a>
+    </div>
+  </section>
+
+  <section class="sec social" id="social">
+    <div class="wrap">
+      <div class="sec-head">
+        <div><div class="eyebrow">Community</div><h2>@karma_bikinis</h2></div>
+        <p><a href="https://www.instagram.com/karma_bikinis" target="_blank" rel="noopener" class="btn line">Follow on Instagram</a></p>
+      </div>
+      <div class="sgrid" id="sgrid"></div>
+    </div>
+  </section>
+</div>
+
+<!-- ============ PRODUCT PAGE ============ -->
+<div class="pdp"><div class="wrap inner">
+  <div class="crumbs"><a href="/" data-link>Karma</a> / <a href="/shop" data-link>Shop</a> / <span id="pdpName"></span></div>
+  <div class="layout">
+    <div class="gallery" id="pdpGallery"></div>
+    <div class="info" id="pdpInfo"></div>
   </div>
-</section>
+</div></div>
+
+<!-- ============ CONTENT PAGE ============ -->
+<div class="page"><div class="inner" id="pageBody"></div></div>
 
 <footer>
   <div class="wrap">
-    <div class="foot">
-      <div>
-        <div class="brand">Karma<b style="color:var(--gold)">.</b></div>
-        <p style="max-width:32ch;margin:14px 0 0;font-size:14px">Elegant, editorial swimwear. New collection out now.</p>
+    <div class="fgrid">
+      <div class="fcol news">
+        <h4>Newsletter</h4>
+        <p>New collections, first.</p>
+        <form id="newsForm" autocomplete="off">
+          <input type="email" id="newsEmail" placeholder="Email address" aria-label="Email address" required>
+          <button type="submit">Join →</button>
+        </form>
+        <div class="ok" id="newsOk"></div>
       </div>
-      <div>
-        <h4>Shop</h4>
-        <a href="#collection">The Collection</a>
+      <div class="fcol">
+        <h4>Client Services</h4>
+        <a href="/contact" data-link>Contact &amp; FAQ</a>
+        <a href="/shipping" data-link>Shipping</a>
+        <a href="/returns" data-link>Exchanges &amp; Returns</a>
+        <a href="/shipping" data-link>Track Order</a>
+        <a href="/privacy" data-link>Privacy Policy</a>
+        <a href="/terms" data-link>Terms of Service</a>
+      </div>
+      <div class="fcol">
+        <h4>The House</h4>
+        <a href="/about" data-link>About Karma</a>
+        <a href="https://antjeworr.ing" target="_blank" rel="noopener">Antje Worring</a>
+        <a href="/shop" data-link>The Collection</a>
         <a href="https://tryon.karma.style">Virtual Try-On</a>
-        <a href="#lookbook">Lookbook</a>
       </div>
-      <div>
-        <h4>House</h4>
-        <a href="#story">Our story</a>
-        <a href="#collection">Sizing</a>
-        <a href="mailto:hello@karma.style">Contact</a>
+      <div class="fcol">
+        <h4>Follow Us</h4>
+        <a href="https://www.instagram.com/karma_bikinis" target="_blank" rel="noopener">Instagram</a>
+        <a href="https://www.tiktok.com/@karma_bikinis" target="_blank" rel="noopener">TikTok</a>
+        <a href="https://www.pinterest.com/karma_bikinis" target="_blank" rel="noopener">Pinterest</a>
+        <a href="https://www.facebook.com/karmabikinis" target="_blank" rel="noopener">Facebook</a>
+      </div>
+      <div class="fcol">
+        <h4>Contact</h4>
+        <p><a href="mailto:hello@karma.style">hello@karma.style</a></p>
+        <p>Mon–Fri · reply in 1–2 days</p>
+        <p>Designed in Bali</p>
+        <p>Shipping worldwide</p>
       </div>
     </div>
-    <div class="legal">
-      <span>© 2026 Karma Bikinis</span>
-      <span class="mono">karma.style</span>
-    </div>
+    <div class="flogo"><img src="/img/brand/karma-black.png" alt="Karma"></div>
+    <div class="legal"><span>© 2026 Karma Bikinis</span></div>
   </div>
 </footer>
 
-<!-- product detail -->
-<div class="pd" id="pd">
-  <div class="scrim" data-close></div>
-  <div class="panel">
-    <div class="box">
-      <button class="close" data-close aria-label="close">✕</button>
-      <div class="layout">
-        <div class="gallery" id="pdGallery"></div>
-        <div class="info" id="pdInfo"></div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- cart -->
-<div class="cart-scrim" id="cartScrim"></div>
+<div class="scrim" id="scrim"></div>
 <aside class="cart" id="cart">
-  <h3>Your bag <button id="cartClose" aria-label="close">✕</button></h3>
+  <h3>Your bag <button id="cartClose" aria-label="Close">✕</button></h3>
   <div class="items" id="cartItems"></div>
-  <div class="foot2">
+  <div class="foot">
     <div class="row"><span>Subtotal</span><span class="mono" id="cartTotal">$0</span></div>
-    <button class="btn gold block" id="checkoutBtn">Checkout</button>
-    <div class="note" id="cartNote">Secure checkout · free returns within 30 days</div>
+    <button class="btn block" id="checkoutBtn">Checkout</button>
+    <div class="note" id="cartNote">Shipping calculated at checkout · exchanges within 10 days</div>
   </div>
 </aside>
 
 <div class="toast" id="toast"></div>
 
-<script src="/products.js"></script>
+<script src="/content.js"></script>
+<script src="/commerce.js"></script>
 <script src="/app.js"></script>
-<!-- KARMA_ANALYTICS -->
+<!-- Analytics (Hanzo Analytics, scoped to the Karma org) -->
+<script defer src="https://analytics.hanzo.ai/script.js" data-website-id="019cc3e3-0062-48e1-9f8d-3110079881d9" data-domains="karma.style,www.karma.style"></script>
+<script>window.karmaTrack=function(n,d){try{window.umami&&window.umami.track(n,d||{})}catch(e){}};</script>
 <!-- KARMA_AI_WIDGET -->
 </body>
 </html>

@@ -116,10 +116,10 @@ main{padding-top:0}
 .pillars span{color:var(--mut);font-size:14px}
 
 /* ---------- try-on band ---------- */
-.tryon{background:var(--fg);color:#fff;text-align:center;padding:120px 0}
-.tryon .eyebrow{color:rgba(255,255,255,.6)}
+.tryon{background:var(--bg);color:var(--fg);text-align:center;padding:120px 0;border-top:1px solid var(--line)}
+.tryon .eyebrow{color:var(--mut)}
 .tryon h2{font-size:clamp(30px,5vw,64px);font-weight:600;letter-spacing:-.02em;margin:14px 0 16px}
-.tryon p{color:rgba(255,255,255,.72);max-width:50ch;margin:0 auto 30px}
+.tryon p{color:var(--mut);max-width:50ch;margin:0 auto 30px}
 
 /* ---------- press strip ---------- */
 .press{border-top:1px solid var(--line);border-bottom:1px solid var(--line)}

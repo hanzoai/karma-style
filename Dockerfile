@@ -12,5 +12,5 @@
 #     --opt=context=https://github.com/hanzoai/karma-style.git#<sha> \
 #     --opt=filename=Dockerfile --opt=platform=linux/amd64 \
 #     --output=type=image,name=ghcr.io/hanzoai/karma-style:<tag>,push=true
-FROM ghcr.io/hanzoai/spa:1.4.2
+FROM ghcr.io/hanzoai/spa:1.4.3
 COPY site /public

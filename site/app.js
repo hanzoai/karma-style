@@ -4,13 +4,38 @@
   "use strict";
   var SIZES = ["XS", "S", "M", "L", "XL"];
   var money = function (n) { return "$" + Math.round(n).toLocaleString("en-US"); };
-  var img = function (slug, role) { return "/img/" + slug + "/" + role + ".webp"; };
+  // Cache-bust token for product art. /img/**.webp is served with a fixed name
+  // and max-age=86400, so Cloudflare can pin a stale shot for up to 24h after a
+  // studio re-render. Bump V on each release (kept in lockstep with the ?v= on
+  // css/js in index.html) so corrected images surface immediately.
+  var V = "043";
+  var img = function (slug, role) { return "/img/" + slug + "/" + role + ".webp?v=" + V; };
   var byId = function (id) { return document.getElementById(id); };
   var PRODUCTS = [];
   var bySlug = {};
 
   // ---------------- data ----------------
   function boot() {
+    // Runtime config: hanzoai/spa templates /config.json from the SPA_COMMERCE_*
+    // env on the karma-style CR (SPA_COMMERCE_HOST -> commerceHost, etc). Wire it
+    // into window.KARMA_COMMERCE_CONFIG BEFORE the first catalog/checkout call so
+    // commerce.js talks to the karma store with its Published token. Absent config
+    // (empty store/token) => products.json stays the display source (graceful).
+    fetch("/config.json", { cache: "no-store" })
+      .then(function (r) { return r.ok ? r.json() : {}; })
+      .catch(function () { return {}; })
+      .then(function (cfg) {
+        if (cfg && (cfg.commerceHost || cfg.commerceStore || cfg.commerceToken)) {
+          window.KARMA_COMMERCE_CONFIG = {
+            base: cfg.commerceHost || "https://commerce.hanzo.ai",
+            store: cfg.commerceStore || "",
+            token: cfg.commerceToken || ""
+          };
+        }
+        loadProducts();
+      });
+  }
+  function loadProducts() {
     fetch("/products.json").then(function (r) { return r.json(); }).then(function (data) {
       PRODUCTS = data.products || [];
       PRODUCTS.forEach(function (p) { bySlug[p.slug] = p; });

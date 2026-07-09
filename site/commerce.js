@@ -3,19 +3,27 @@
 // Config is injected at build time once the karma store + Published storefront
 // token exist (browser-safe: Published scope only, org-bound to `karma`).
 (function () {
-  var CFG = window.KARMA_COMMERCE_CONFIG || {
-    base: "https://commerce.hanzo.ai",
-    store: "",   // <STORE_ID>            (empty = use products.json fallback)
-    token: ""    // <Published token>     (empty = catalog display only)
-  };
-  function ready() { return !!(CFG.store && CFG.token); }
-  function H() { return { Authorization: "Bearer " + CFG.token }; }
+  // Config is read LAZILY (not captured at load) so app.js can populate
+  // window.KARMA_COMMERCE_CONFIG from the runtime /config.json (templated by
+  // hanzoai/spa from the SPA_COMMERCE_* env on the karma-style CR) BEFORE the
+  // first catalog/checkout call. Browser-safe: the token is a Published,
+  // org-bound (karma) key — read scope + checkout only, never admin/write.
+  function CFG() {
+    return window.KARMA_COMMERCE_CONFIG || {
+      base: "https://commerce.hanzo.ai",
+      store: "",   // <STORE_ID>            (empty = use products.json fallback)
+      token: ""    // <Published token>     (empty = catalog display only)
+    };
+  }
+  function ready() { var c = CFG(); return !!(c.store && c.token); }
+  function H() { return { Authorization: "Bearer " + CFG().token }; }
 
   // Load the live catalog (object keyed by slug) -> array; else null (fallback).
   async function loadCatalog() {
     if (!ready()) return null;
     try {
-      var r = await fetch(CFG.base + "/v1/store/" + CFG.store + "/listing", { headers: H() });
+      var c = CFG();
+      var r = await fetch(c.base + "/v1/store/" + c.store + "/listing", { headers: H() });
       if (!r.ok) return null;
       var map = await r.json();
       return Object.entries(map).map(function (e) {
@@ -33,7 +41,7 @@
   async function checkout(cart, customer) {
     if (!ready()) throw new Error("commerce_not_configured");
     var items = cart.map(function (i) { return { productSlug: i.slug, quantity: i.qty }; });
-    var r = await fetch(CFG.base + "/v1/checkout/sessions", {
+    var r = await fetch(CFG().base + "/v1/checkout/sessions", {
       method: "POST",
       headers: Object.assign({ "Content-Type": "application/json" }, H()),
       body: JSON.stringify({

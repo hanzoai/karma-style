@@ -142,7 +142,7 @@
     var a = e.target.closest("a[data-link]"); if (!a) return;
     var href = a.getAttribute("href");
     if (href.indexOf("http") === 0) return;
-    e.preventDefault(); closeCart();
+    e.preventDefault(); closeCart(); closeMenu();
     if (href === location.pathname + location.hash) { route(href, true); return; }
     go(href);
   });
@@ -166,7 +166,14 @@
   byId("bagBtn").addEventListener("click", openCart);
   byId("cartClose").addEventListener("click", closeCart);
   scrim.addEventListener("click", closeCart);
-  byId("menuBtn").addEventListener("click", function () { go("/shop"); });
+
+  // ---------------- mobile menu ----------------
+  var mmenu = byId("mmenu");
+  function openMenu() { mmenu.classList.add("open"); mmenu.setAttribute("aria-hidden", "false"); document.body.classList.add("no-scroll"); }
+  function closeMenu() { mmenu.classList.remove("open"); mmenu.setAttribute("aria-hidden", "true"); document.body.classList.remove("no-scroll"); }
+  byId("menuBtn").addEventListener("click", openMenu);
+  byId("mmClose").addEventListener("click", closeMenu);
+  window.addEventListener("keydown", function (e) { if (e.key === "Escape") { closeMenu(); closeCart(); } });
 
   function renderCart() {
     byId("bagCount").textContent = count();

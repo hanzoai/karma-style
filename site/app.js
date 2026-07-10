@@ -8,7 +8,7 @@
   // and max-age=86400, so Cloudflare can pin a stale shot for up to 24h after a
   // studio re-render. Bump V on each release (kept in lockstep with the ?v= on
   // css/js in index.html) so corrected images surface immediately.
-  var V = "050";
+  var V = "051";
   var img = function (slug, role) { return "/img/" + slug + "/" + role + ".webp?v=" + V; };
   // Per-product shot curation (products.json): `hide` lists broken/mangled roles
   // that must never render anywhere; `hover` overrides the on-model hover shot.

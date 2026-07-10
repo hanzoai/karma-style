@@ -37,7 +37,9 @@ window.KARMA_JOURNAL = (function () {
 
   function load(cb) {
     if (cache) return cb(cache);
-    fetch("/journal.json").then(function (r) { return r.ok ? r.json() : { posts: [] }; })
+    // Versioned so a release busts Cloudflare's edge cache (an un-versioned
+    // /journal.json can pin a stale 404 from before the journal shipped).
+    fetch("/journal.json?v=" + V).then(function (r) { return r.ok ? r.json() : { posts: [] }; })
       .catch(function () { return { posts: [] }; })
       .then(function (d) { cache = (d.posts || []); cb(cache); });
   }

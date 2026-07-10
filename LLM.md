@@ -19,7 +19,7 @@ Layout:
 - `library.json` — the ONE index. Never a second index.
 
 Tools (scattered by history; all operate on `library.json`):
-- `studio/scripts/karma_manifest.py` — regenerates `library.json` from disk,
+- `scripts/karma_manifest.py` — regenerates `library.json` from disk,
   **preserving `status`/`caption`/`tags` by path**. Indexes images **and**
   `marketing/**/*.md`. Run after any file add.
 - `~/Desktop/Bikinis/scripts/karma-queue.py` — the `draft → approved/queued →
@@ -49,7 +49,7 @@ Qwen-Image-Edit-2511 recipe) and save winners to
 
 ### 2 — INDEX + APPROVE (catalog)
 ```
-python3 /home/z/work/hanzo/studio/scripts/karma_manifest.py --root $KARMA_LIBRARY_ROOT
+python3 /home/z/work/hanzo/karma-style/scripts/karma_manifest.py --root $KARMA_LIBRARY_ROOT
 cd ~/Desktop/Bikinis/scripts
 python3 karma-queue.py approve designs/<slug>/ecom_front.png   # per catalog shot
 python3 karma-queue.py list --status approved
@@ -61,13 +61,13 @@ Author on-brand copy (white high-fashion, monochrome, tight editorial — see th
 already in the library for voice). Draft via the AI (api.hanzo.ai zen3 or author
 directly). Then index + queue:
 ```
-python3 /home/z/work/hanzo/studio/scripts/karma_manifest.py --root $KARMA_LIBRARY_ROOT   # picks up new .md as draft
+python3 /home/z/work/hanzo/karma-style/scripts/karma_manifest.py --root $KARMA_LIBRARY_ROOT   # picks up new .md as draft
 cd ~/Desktop/Bikinis/scripts
 python3 karma-queue.py queue marketing/blog/<slug>_journal.md   -m "<teaser>"
 python3 karma-queue.py queue marketing/social/<slug>_ig.md      -m "<caption>"
 python3 karma-queue.py tag   marketing/social/<slug>_ig.md "#karmabikinis" "#karmastyle" ...
 python3 karma-queue.py queue marketing/campaign/<name>_brief.md -m "<line>"
-python3 /home/z/work/hanzo/studio/scripts/karma_manifest.py --root $KARMA_LIBRARY_ROOT   # recompute _meta.byStatus
+python3 /home/z/work/hanzo/karma-style/scripts/karma_manifest.py --root $KARMA_LIBRARY_ROOT   # recompute _meta.byStatus
 ```
 
 ### 4 — MIRROR to S3 (via the pod PVC — authoritative)

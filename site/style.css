@@ -130,6 +130,29 @@ main{padding-top:0}
 .card:hover .quick{opacity:1;transform:none;pointer-events:auto}
 .card .quick .btn{width:100%;padding:14px;font-size:12px}
 
+/* ---------- collections nav (sticky chip row) ---------- */
+.coll-nav{display:flex;gap:8px;flex-wrap:wrap;margin:-14px 0 40px;position:sticky;top:var(--hh);z-index:12;
+  background:rgba(255,255,255,.92);backdrop-filter:blur(12px);padding:12px 0}
+.coll-nav .chip{font-family:"Geist Mono",monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--mut);border:1px solid var(--line2);padding:8px 13px;cursor:pointer;transition:.15s;white-space:nowrap}
+.coll-nav .chip:hover{color:var(--fg);border-color:var(--fg)}
+
+/* ---------- collection section ---------- */
+.coll-sec{margin:0 0 60px;scroll-margin-top:calc(var(--hh) + 70px)}
+.coll-sec:last-child{margin-bottom:0}
+.coll-head{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;
+  border-bottom:1px solid var(--fg);padding-bottom:16px;margin-bottom:20px;flex-wrap:wrap}
+.coll-head h3{font-size:clamp(22px,3vw,34px);font-weight:600;letter-spacing:-.02em;margin:0;line-height:1}
+.coll-head .ch-txt p{color:var(--mut);margin:8px 0 0;max-width:64ch;font-size:14px}
+.coll-head .count{font-family:"Geist Mono",monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--dim);white-space:nowrap}
+
+/* ---------- sold-out / pre-order card state ---------- */
+.card.pre .frame img{filter:saturate(.94)}
+.card .soldout{position:absolute;top:14px;right:14px;z-index:3;font-family:"Geist Mono",monospace;
+  font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#fff;background:var(--fg);padding:5px 9px}
+.card.pre:hover .quick .btn{background:var(--fg);color:#fff}
+
 /* ---------- lookbook ---------- */
 .look{columns:3;column-gap:6px}
 .look img{width:100%;margin-bottom:6px;break-inside:avoid;background:var(--soft)}
@@ -231,6 +254,15 @@ body.route-product .pdp{display:block}
 .sizes button:hover{border-color:var(--fg);background:var(--soft)}
 .sizes button.sel{background:var(--fg);color:#fff;border-color:var(--fg)}
 .pdp .buys{display:flex;flex-direction:column;gap:10px}
+.pdp .info .price .soldpill{font-family:"Geist Mono",monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+  color:#fff;background:var(--fg);padding:4px 8px;vertical-align:middle;margin-left:8px}
+.pdp .prenote{font-size:13px;line-height:1.55;color:var(--mut);border-left:2px solid var(--fg);
+  padding:2px 0 2px 14px;margin-top:4px}
+.opt{margin:0 0 22px}
+.opt .lab{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-bottom:10px}
+.opt .chips{display:flex;gap:8px;flex-wrap:wrap}
+.opt .cchip{font-family:"Geist Mono",monospace;font-size:11px;letter-spacing:.06em;color:var(--fg);
+  border:1px solid var(--line2);padding:7px 12px}
 .pdp .trylink{margin-top:16px;font-size:13px;color:var(--mut)}
 .pdp .trylink a{border-bottom:1px solid var(--line2)}
 .pdp .trylink a:hover{border-color:var(--fg)}

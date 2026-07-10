@@ -8,18 +8,24 @@
   // and max-age=86400, so Cloudflare can pin a stale shot for up to 24h after a
   // studio re-render. Bump V on each release (kept in lockstep with the ?v= on
   // css/js in index.html) so corrected images surface immediately.
-  var V = "044";
+  var V = "049";
   var img = function (slug, role) { return "/img/" + slug + "/" + role + ".webp?v=" + V; };
   // Per-product shot curation (products.json): `hide` lists broken/mangled roles
   // that must never render anywhere; `hover` overrides the on-model hover shot.
   // Resting card = product-only silhouette (flat/ghost); hover = model wearing it.
   var hidden = function (p, role) { return !!(p.hide && p.hide.indexOf(role) >= 0); };
   var pick = function (p, roles) { for (var i = 0; i < roles.length; i++) { if (!hidden(p, roles[i])) return roles[i]; } return roles[roles.length - 1]; };
-  var restRole = function (p) { return pick(p, ["flat", "ghost", "front"]); };
-  var hoverRole = function (p) { return (p.hover && !hidden(p, p.hover)) ? p.hover : pick(p, ["editorial", "life1", "tq", "front"]); };
+  // Historic archive pieces ship an explicit `gallery` (front/back/g3...) and are sold
+  // out but reservable -- pre-order is the demand signal. Studio 2026 pieces use the
+  // curated role set (flat/ghost/editorial/...) with per-product hide/hover.
+  var isPre = function (p) { return p && (p.status === "preorder" || p.inStock === false); };
+  var galleryOf = function (p) { return (p.gallery && p.gallery.length) ? p.gallery : ["front", "flat", "ghost", "tq", "back", "editorial", "life1", "life2"].filter(function (r) { return !hidden(p, r); }); };
+  var restRole = function (p) { return p.gallery ? "front" : pick(p, ["flat", "ghost", "front"]); };
+  var hoverRole = function (p) { return p.gallery ? (p.gallery.indexOf("back") >= 0 ? "back" : "front") : ((p.hover && !hidden(p, p.hover)) ? p.hover : pick(p, ["editorial", "life1", "tq", "front"])); };
   var byId = function (id) { return document.getElementById(id); };
   var PRODUCTS = [];
   var bySlug = {};
+  var COLLECTIONS = { order: [], meta: {} };
 
   // ---------------- data ----------------
   function boot() {
@@ -45,6 +51,7 @@
   function loadProducts() {
     fetch("/products.json").then(function (r) { return r.json(); }).then(function (data) {
       PRODUCTS = data.products || [];
+      COLLECTIONS = data.collections || COLLECTIONS;
       PRODUCTS.forEach(function (p) { bySlug[p.slug] = p; });
       renderGrid(); renderLook(); renderSocial(); renderCart();
       route(location.pathname + location.hash, false);
@@ -66,7 +73,7 @@
     var p = bySlug[slug]; if (!p) return;
     var id = slug + "|" + size, ex = cart.filter(function (i) { return i.id === id; })[0];
     if (ex) ex.qty++; else cart.push({ id: id, slug: slug, size: size, name: p.name, price: p.price, qty: 1 });
-    save(); toast(p.name + " · " + size + " added"); openCart();
+    save(); toast((isPre(p) ? "Pre-order reserved · " : "") + p.name + " · " + size); openCart();
     if (window.karmaTrack) window.karmaTrack("add_to_cart", { slug: slug });
   }
   function setQty(id, d) { var it = cart.filter(function (i) { return i.id === id; })[0]; if (!it) return; it.qty += d; if (it.qty <= 0) cart = cart.filter(function (i) { return i.id !== id; }); save(); }
@@ -75,21 +82,48 @@
   var total = function () { return cart.reduce(function (s, i) { return s + i.qty * i.price; }, 0); };
 
   // ---------------- render: collection ----------------
-  function renderGrid() {
-    byId("grid").innerHTML = PRODUCTS.map(function (p) {
-      return '<article class="card" data-slug="' + p.slug + '">' +
-        '<div class="frame"><span class="tag">' + p.tag + '</span>' +
+  function cardHTML(p) {
+    var pre = isPre(p);
+    return '<article class="card' + (pre ? ' pre' : '') + '" data-slug="' + p.slug + '">' +
+      '<div class="frame">' +
+        (pre ? '<span class="soldout">Sold out</span>' : '') +
+        '<span class="tag">' + p.tag + '</span>' +
         '<img class="a" loading="lazy" src="' + img(p.slug, restRole(p)) + '" alt="' + p.name + '">' +
-        '<img class="b" loading="lazy" src="' + img(p.slug, hoverRole(p)) + '" alt="' + p.name + ' on model">' +
-        '<div class="quick"><span class="btn">View</span></div></div>' +
-        '<div class="meta"><span class="nm">' + p.name + '</span><span class="pr">' + money(p.price) + '</span></div>' +
-        '</article>';
-    }).join("");
+        '<img class="b" loading="lazy" src="' + img(p.slug, hoverRole(p)) + '" alt="' + p.name + (pre ? '' : ' on model') + '">' +
+        '<div class="quick"><span class="btn">' + (pre ? "Pre-order" : "View") + '</span></div>' +
+      '</div>' +
+      '<div class="meta"><span class="nm">' + p.name + '</span><span class="pr">' + money(p.price) + '</span></div>' +
+      '</article>';
+  }
+  function sectionHTML(key, title, blurb, items) {
+    if (!items.length) return "";
+    return '<div class="coll-sec" id="coll-' + key + '">' +
+      '<div class="coll-head"><div class="ch-txt"><h3>' + title + '</h3>' + (blurb ? '<p>' + blurb + '</p>' : "") + '</div>' +
+      '<span class="count">' + items.length + " piece" + (items.length > 1 ? "s" : "") + '</span></div>' +
+      '<div class="grid">' + items.map(cardHTML).join("") + '</div></div>';
+  }
+  function renderGrid() {
+    var live = PRODUCTS.filter(function (p) { return !p.collection; });
+    var secs = [], nav = [];
+    if (live.length) {
+      secs.push(sectionHTML("2026", "The 2026 Collection", "In stock now -- cut clean, finished by hand, shot for the light.", live));
+      nav.push('<a class="chip" href="#coll-2026">2026</a>');
+    }
+    (COLLECTIONS.order || []).forEach(function (key) {
+      var meta = (COLLECTIONS.meta || {})[key] || {};
+      var items = PRODUCTS.filter(function (p) { return p.collection === key; });
+      if (!items.length) return;
+      secs.push(sectionHTML(key, meta.title || key, meta.blurb || "", items));
+      nav.push('<a class="chip" href="#coll-' + key + '">' + (meta.title || key) + '</a>');
+    });
+    byId("shopSections").innerHTML = secs.join("");
+    byId("collNav").innerHTML = nav.join("");
     byId("bagCount").textContent = count();
   }
+  // Lookbook + social pull the 2026 studio lifestyle shots (historic pieces have no life/editorial roles).
   function renderLook() {
     var shots = [];
-    PRODUCTS.forEach(function (p) {
+    PRODUCTS.filter(function (p) { return !p.collection; }).forEach(function (p) {
       ["editorial", "tq", "life1"].forEach(function (r) { if (!hidden(p, r)) shots.push(img(p.slug, r)); });
     });
     byId("look").innerHTML = shots.map(function (s) { return '<img loading="lazy" src="' + s + '" alt="Karma lookbook">'; }).join("");
@@ -97,7 +131,7 @@
   function renderSocial() {
     // Community grid from real brand imagery, linking to @karma_bikinis.
     var pool = [];
-    PRODUCTS.forEach(function (p) { pool.push(img(p.slug, "editorial"), img(p.slug, hidden(p, "life1") ? "tq" : "life1")); });
+    PRODUCTS.filter(function (p) { return !p.collection; }).forEach(function (p) { pool.push(img(p.slug, "editorial"), img(p.slug, hidden(p, "life1") ? "tq" : "life1")); });
     var ig = "https://www.instagram.com/karma_bikinis";
     byId("sgrid").innerHTML = pool.slice(0, 12).map(function (s) {
       return '<a href="' + ig + '" target="_blank" rel="noopener"><img loading="lazy" src="' + s + '" alt="Karma on Instagram"></a>';
@@ -110,31 +144,41 @@
     var p = bySlug[slug]; if (!p) { go("/shop"); return; }
     pdSize = "M";
     byId("pdpName").textContent = p.name;
-    var order = [["front", "wide"], ["flat", ""], ["ghost", ""], ["tq", ""], ["back", ""], ["editorial", ""], ["life1", ""], ["life2", ""]];
-    byId("pdpGallery").innerHTML = order.filter(function (o) { return !hidden(p, o[0]); }).map(function (o) {
-      return '<img class="' + o[1] + '" loading="lazy" src="' + img(p.slug, o[0]) + '" alt="' + p.name + ' ' + o[0] + '">';
+    var pre = isPre(p);
+    var meta = (COLLECTIONS.meta || {})[p.collection] || {};
+    var g = galleryOf(p);
+    byId("pdpGallery").innerHTML = g.map(function (role, i) {
+      return '<img class="' + (i === 0 ? "wide" : "") + '" loading="lazy" src="' + img(p.slug, role) + '" alt="' + p.name + ' ' + role + '">';
     }).join("");
+    var colorsRow = (p.colors && p.colors.length)
+      ? '<div class="opt"><div class="lab">Colour' + (p.colors.length > 1 ? "s" : "") + '</div><div class="chips">' +
+          p.colors.map(function (c) { return '<span class="cchip">' + c + '</span>'; }).join("") + '</div></div>'
+      : "";
+    var buys = pre
+      ? '<button class="btn block" id="pdAdd">Pre-order — ' + money(p.price) + '</button>' +
+        '<div class="prenote">Sold out — pre-order to bring it back. We produce the run once enough of you reserve it, and you’re not charged until it ships.</div>'
+      : '<button class="btn block" id="pdAdd">Add to bag — ' + money(p.price) + '</button>' +
+        '<a class="btn line block" href="https://tryon.karma.style?design=' + p.slug + '">Try it on</a>';
     byId("pdpInfo").innerHTML =
-      '<div class="tag">' + p.tag + '</div><h1>' + p.name + '</h1>' +
-      '<div class="price">' + money(p.price) + '</div>' +
+      '<div class="tag">' + (meta.title || p.tag) + '</div><h1>' + p.name + '</h1>' +
+      '<div class="price">' + money(p.price) + (pre ? ' <span class="soldpill">Sold out</span>' : "") + '</div>' +
       '<p class="desc">' + p.blurb + '</p>' +
+      colorsRow +
       '<div class="spec">' +
         '<div><span>Fabric</span><span>' + p.fabric + '</span></div>' +
         '<div><span>Fit</span><span>' + p.fit + '</span></div>' +
-        '<div><span>Ships</span><span>3–5 business days</span></div>' +
+        '<div><span>' + (pre ? "Availability" : "Ships") + '</span><span>' + (pre ? "Pre-order · made to order" : "3–5 business days") + '</span></div>' +
       '</div>' +
       '<div class="sizes"><div class="lab">Size</div><div class="row" id="pdSizes">' +
         SIZES.map(function (s) { return '<button data-size="' + s + '" class="' + (s === "M" ? "sel" : "") + '">' + s + '</button>'; }).join("") +
       '</div></div>' +
-      '<div class="buys">' +
-        '<button class="btn block" id="pdAdd">Add to bag — ' + money(p.price) + '</button>' +
-        '<a class="btn line block" href="https://tryon.karma.style?design=' + p.slug + '">Try it on</a>' +
-      '</div>' +
-      '<div class="trylink">Not sure on fit? <a href="https://tryon.karma.style?design=' + p.slug + '">See it on your own photo →</a></div>' +
+      '<div class="buys">' + buys + '</div>' +
+      (pre ? "" : '<div class="trylink">Not sure on fit? <a href="https://tryon.karma.style?design=' + p.slug + '">See it on your own photo →</a></div>') +
       '<div class="acc">' +
         '<details open><summary>Description</summary><div class="body">' + p.blurb + '</div></details>' +
+        (meta.blurb ? '<details><summary>Collection — ' + (meta.title || "") + '</summary><div class="body">' + meta.blurb + '</div></details>' : "") +
         '<details><summary>Composition &amp; Care</summary><div class="body">' + p.fabric + '. Hand-wash cold, lay flat to dry. Rinse after sun, salt or chlorine. Fully lined; adjustable where noted.</div></details>' +
-        '<details><summary>Shipping &amp; Returns</summary><div class="body">Ships from San Francisco in 3–5 business days with tracking. Exchanges or store credit within 10 days of delivery. See <a href="/shipping" data-link>Shipping</a> &amp; <a href="/returns" data-link>Returns</a>.</div></details>' +
+        '<details><summary>Shipping &amp; Returns</summary><div class="body">' + (pre ? "A pre-order reserves your piece — we ship with tracking once the run is produced, and there’s no charge until it ships." : "Ships from San Francisco in 3–5 business days with tracking. Exchanges or store credit within 10 days of delivery.") + ' See <a href="/shipping" data-link>Shipping</a> &amp; <a href="/returns" data-link>Returns</a>.</div></details>' +
       '</div>';
     byId("pdSizes").addEventListener("click", function (e) {
       var b = e.target.closest("button"); if (!b) return; pdSize = b.dataset.size;
@@ -193,7 +237,8 @@
   window.addEventListener("scroll", updateHeader, { passive: true });
 
   // ---------------- collection + cart interactions ----------------
-  byId("grid").addEventListener("click", function (e) { var c = e.target.closest(".card"); if (c) go("/product/" + c.dataset.slug); });
+  byId("shopSections").addEventListener("click", function (e) { var c = e.target.closest(".card"); if (c) go("/product/" + c.dataset.slug); });
+  byId("collNav").addEventListener("click", function (e) { var a = e.target.closest("a"); if (!a) return; e.preventDefault(); scrollToId(a.getAttribute("href").slice(1)); });
   var scrim = byId("scrim");
   function openCart() { byId("cart").classList.add("open"); scrim.classList.add("open"); document.body.classList.add("no-scroll"); }
   function closeCart() { byId("cart").classList.remove("open"); scrim.classList.remove("open"); document.body.classList.remove("no-scroll"); }

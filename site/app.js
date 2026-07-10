@@ -261,5 +261,120 @@
   var tT;
   function toast(msg) { var t = byId("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(tT); tT = setTimeout(function () { t.classList.remove("show"); }, 2600); }
 
+  // ---------------- command palette (Cmd/Ctrl+K) ----------------
+  // Keyboard-driven jump to any product or page. Self-contained (built here,
+  // appended to <body>); selecting an item routes through go()/window.open.
+  var cmdkEl, cmdkInput, cmdkList, cmdkItems = [], cmdkView = [], cmdkSel = 0;
+  var isMac = /Mac|iPhone|iPad/.test((navigator.platform || "") + " " + navigator.userAgent);
+  var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); };
+  function cmdkBuild() {
+    var pages = [
+      { n: "Shop", s: "The collection · 8 designs", p: "/shop", k: "Page" },
+      { n: "Lookbook", s: "On location", p: "/#lookbook", k: "Page" },
+      { n: "Virtual Try-On", s: "See it on your own photo", p: "https://tryon.karma.style", k: "Link", ext: 1 },
+      { n: "About Karma", s: "The house", p: "/about", k: "Page" },
+      { n: "Contact", s: "Say hello", p: "/contact", k: "Page" },
+      { n: "Shipping", s: "Policy", p: "/shipping", k: "Page" },
+      { n: "Returns & Exchanges", s: "Policy", p: "/returns", k: "Page" },
+      { n: "Privacy Policy", s: "Legal", p: "/privacy", k: "Page" },
+      { n: "Terms of Service", s: "Legal", p: "/terms", k: "Page" },
+      { n: "Home", s: "Front page", p: "/", k: "Page" }
+    ];
+    var prod = PRODUCTS.map(function (p) {
+      return { n: p.name, s: money(p.price) + " · " + p.tag, p: "/product/" + p.slug, k: "Product", thumb: img(p.slug, restRole(p)) };
+    });
+    cmdkItems = prod.concat(pages);
+  }
+  function fuzzy(q, text) {
+    text = text.toLowerCase(); if (!q) return 0;
+    var idx = text.indexOf(q); if (idx >= 0) return 100 - idx - text.length * 0.02;
+    var qi = 0, streak = 0, score = 0;
+    for (var i = 0; i < text.length && qi < q.length; i++) {
+      if (text.charAt(i) === q.charAt(qi)) { qi++; streak++; score += streak; } else streak = 0;
+    }
+    return qi === q.length ? score - text.length * 0.02 : -1;
+  }
+  function cmdkRender() {
+    var q = (cmdkInput.value || "").trim().toLowerCase();
+    var scored = cmdkItems.map(function (it) {
+      var sc;
+      if (!q) sc = 0;
+      else { var ns = fuzzy(q, it.n), ss = fuzzy(q, it.s);
+        sc = ns >= 0 ? ns + (it.k === "Product" ? 2 : 0) : (ss >= 0 ? ss * 0.5 : -1); }
+      return { it: it, sc: sc };
+    }).filter(function (r) { return r.sc >= 0; });
+    if (q) scored.sort(function (a, b) { return b.sc - a.sc; });
+    cmdkView = scored.slice(0, 8).map(function (r) { return r.it; });
+    if (cmdkSel >= cmdkView.length) cmdkSel = 0;
+    if (!cmdkView.length) { cmdkList.innerHTML = '<div class="cmdk-empty">No matches for &ldquo;' + esc(q) + '&rdquo;</div>'; return; }
+    cmdkList.innerHTML = cmdkView.map(function (it, i) {
+      var thumb = it.thumb ? '<img class="ci-thumb" loading="lazy" src="' + it.thumb + '" alt="">' : "";
+      return '<div class="cmdk-item' + (i === cmdkSel ? " sel" : "") + '" data-i="' + i + '">' + thumb +
+        '<div class="ci-l"><div class="ci-n">' + esc(it.n) + '</div><div class="ci-s">' + esc(it.s) + '</div></div>' +
+        '<span class="ci-k">' + it.k + '</span></div>';
+    }).join("");
+  }
+  function cmdkPaint() {
+    var rows = cmdkList.querySelectorAll(".cmdk-item");
+    Array.prototype.forEach.call(rows, function (r, i) {
+      r.classList.toggle("sel", i === cmdkSel); if (i === cmdkSel) r.scrollIntoView({ block: "nearest" });
+    });
+  }
+  function cmdkOpen() {
+    if (!cmdkEl) return; cmdkBuild();
+    cmdkEl.classList.add("open"); cmdkEl.setAttribute("aria-hidden", "false");
+    document.body.classList.add("no-scroll");
+    cmdkInput.value = ""; cmdkSel = 0; cmdkRender();
+    setTimeout(function () { cmdkInput.focus(); }, 20);
+  }
+  function cmdkClose() {
+    if (!cmdkEl) return;
+    cmdkEl.classList.remove("open"); cmdkEl.setAttribute("aria-hidden", "true");
+    if (!byId("cart").classList.contains("open") && !mmenu.classList.contains("open")) document.body.classList.remove("no-scroll");
+  }
+  function cmdkGo(it) {
+    if (!it) return; cmdkClose();
+    if (it.ext) { window.open(it.p, "_blank", "noopener"); return; }
+    closeCart(); closeMenu(); go(it.p);
+  }
+  function cmdkInit() {
+    var d = document.createElement("div");
+    d.className = "cmdk"; d.id = "cmdk"; d.setAttribute("aria-hidden", "true");
+    d.innerHTML =
+      '<div class="cmdk-scrim" data-close="1"></div>' +
+      '<div class="cmdk-box" role="dialog" aria-modal="true" aria-label="Search Karma">' +
+        '<div class="cmdk-head">' +
+          '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20.5 20.5 16 16"/></svg>' +
+          '<input id="cmdkInput" placeholder="Search products and pages…" autocomplete="off" spellcheck="false" aria-label="Search">' +
+          '<kbd>esc</kbd>' +
+        '</div><div class="cmdk-list" id="cmdkList"></div></div>';
+    document.body.appendChild(d);
+    cmdkEl = d; cmdkInput = byId("cmdkInput"); cmdkList = byId("cmdkList");
+    d.addEventListener("click", function (e) {
+      if (e.target.closest("[data-close]")) { cmdkClose(); return; }
+      var row = e.target.closest(".cmdk-item"); if (row) cmdkGo(cmdkView[+row.dataset.i]);
+    });
+    d.addEventListener("mousemove", function (e) {
+      var row = e.target.closest(".cmdk-item"); if (!row) return; var i = +row.dataset.i;
+      if (i !== cmdkSel) { cmdkSel = i; cmdkPaint(); }
+    });
+    cmdkInput.addEventListener("input", function () { cmdkSel = 0; cmdkRender(); });
+    cmdkInput.addEventListener("keydown", function (e) {
+      if (e.key === "ArrowDown") { e.preventDefault(); cmdkSel = Math.min(cmdkSel + 1, cmdkView.length - 1); cmdkPaint(); }
+      else if (e.key === "ArrowUp") { e.preventDefault(); cmdkSel = Math.max(cmdkSel - 1, 0); cmdkPaint(); }
+      else if (e.key === "Enter") { e.preventDefault(); cmdkGo(cmdkView[cmdkSel]); }
+      else if (e.key === "Escape") { e.preventDefault(); cmdkClose(); }
+    });
+    var sb = byId("searchBtn"); if (sb) sb.addEventListener("click", cmdkOpen);
+    var kk = document.querySelector("#searchBtn .kk"); if (kk && !isMac) kk.textContent = "Ctrl K";
+  }
+  window.addEventListener("keydown", function (e) {
+    if ((e.metaKey || e.ctrlKey) && (e.key === "k" || e.key === "K")) {
+      e.preventDefault();
+      if (cmdkEl && cmdkEl.classList.contains("open")) cmdkClose(); else cmdkOpen();
+    }
+  });
+
+  cmdkInit();
   boot();
 })();

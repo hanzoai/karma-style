@@ -10,12 +10,12 @@
 <meta property="og:image" content="/img/hero/hero.webp">
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#ffffff">
-<link rel="icon" type="image/png" sizes="512x512" href="/favicon.png?v=044">
-<link rel="apple-touch-icon" href="/favicon.png?v=044">
+<link rel="icon" type="image/png" sizes="512x512" href="/favicon.png?v=049">
+<link rel="apple-touch-icon" href="/favicon.png?v=049">
 <link rel="preload" href="/fonts/GeistVF.woff2" as="font" type="font/woff2" crossorigin>
 <!-- Fixed-name assets are edge-cached 24h (hanzoai/spa max-age=86400); index.html
      is no-cache. Bump ?v= on every release so CSS/JS never serve stale. -->
-<link rel="stylesheet" href="/style.css?v=044">
+<link rel="stylesheet" href="/style.css?v=049">
 </head>
 <body>
 
@@ -98,10 +98,11 @@
   <section class="sec" id="shop">
     <div class="wrap">
       <div class="sec-head">
-        <div><div class="eyebrow">The Collection</div><h2>Eight to choose from.</h2></div>
-        <p>Every piece photographed front, back and in the wild. Hover to turn.</p>
+        <div><div class="eyebrow">The Collection</div><h2>The full house.</h2></div>
+        <p>The 2026 line, in stock — plus every archive collection, back by pre-order. Hover to turn.</p>
       </div>
-      <div class="grid" id="grid"></div>
+      <nav class="coll-nav" id="collNav" aria-label="Collections"></nav>
+      <div id="shopSections"></div>
     </div>
   </section>
 
@@ -233,9 +234,9 @@
 
 <div class="toast" id="toast"></div>
 
-<script src="/content.js?v=044"></script>
-<script src="/commerce.js?v=044"></script>
-<script src="/app.js?v=044"></script>
+<script src="/content.js?v=049"></script>
+<script src="/commerce.js?v=049"></script>
+<script src="/app.js?v=049"></script>
 <!-- Analytics (Hanzo Analytics, scoped to the Karma org) -->
 <script defer src="https://analytics.hanzo.ai/script.js" data-website-id="019cc3e3-0062-48e1-9f8d-3110079881d9" data-domains="karma.style,www.karma.style"></script>
 <script>window.karmaTrack=function(n,d){try{window.umami&&window.umami.track(n,d||{})}catch(e){}};</script>

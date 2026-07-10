@@ -16,16 +16,16 @@
   "products": [
     { "slug": "valentina", "name": "Valentina", "price": 158, "tag": "Signature",
       "blurb": "Deep-wine crushed velvet with gold open-heart hardware, criss-cross hip straps and a full thigh-wrap garter. Our most-requested strappy set.",
-      "fabric": "Crushed velvet · gold hardware", "fit": "Adjustable halter · high-leg" },
+      "fabric": "Crushed velvet · gold hardware", "fit": "Adjustable halter · high-leg", "hide": ["life1", "life2"] },
     { "slug": "redonepiece", "name": "Scarlet One-Piece", "price": 168, "tag": "Signature",
       "blurb": "A clean scarlet maillot with a sculpted open back. Seamless, sun-ready, and made to photograph.",
-      "fabric": "Matte scarlet lycra", "fit": "Full one-piece · open back" },
+      "fabric": "Matte scarlet lycra", "fit": "Full one-piece · open back", "hover": "tq", "hide": ["life1", "life2"] },
     { "slug": "festival_fuchsia", "name": "Festival Fuchsia", "price": 142, "tag": "New",
       "blurb": "Vivid hot-fuchsia with a soft draped top and tie-side brief. Built for sun, salt and long days.",
-      "fabric": "Hot-fuchsia stretch", "fit": "Draped triangle · tie-side" },
+      "fabric": "Hot-fuchsia stretch", "fit": "Draped triangle · tie-side", "hide": ["life1", "life2"] },
     { "slug": "neptune_green", "name": "Neptune Green", "price": 124, "tag": "New",
       "blurb": "Deep sea-green with a sculpted underwire and clean high-leg lines. Editorial by day, dinner by night.",
-      "fabric": "Sea-green stretch", "fit": "Underwire · high-leg" },
+      "fabric": "Sea-green stretch", "fit": "Underwire · high-leg", "hide": ["life1", "life2"] },
     { "slug": "floralmesh", "name": "Floral Mesh", "price": 138, "tag": "New",
       "blurb": "Botanical mesh over a lined base. Sheer where it should be, structured where it counts.",
       "fabric": "Printed floral mesh", "fit": "Bralette · mid-rise" },
@@ -34,9 +34,9 @@
       "fabric": "Jewel-stripe knit", "fit": "Balconette · full brief" },
     { "slug": "ches", "name": "Ches", "price": 128, "tag": "New",
       "blurb": "Architectural strap-work in matte black. Minimal, sharp, and quietly confident.",
-      "fabric": "Matte black stretch", "fit": "Strappy bralette · high-leg" },
+      "fabric": "Matte black stretch", "fit": "Strappy bralette · high-leg", "hide": ["life1", "life2"] },
     { "slug": "red", "name": "Scarlet", "price": 98, "tag": "New",
       "blurb": "The essential scarlet two-piece. Clean triangle, clean brief, endlessly wearable.",
-      "fabric": "Matte scarlet lycra", "fit": "Triangle · classic brief" }
+      "fabric": "Matte scarlet lycra", "fit": "Triangle · classic brief", "hide": ["life1", "life2"] }
   ]
 }

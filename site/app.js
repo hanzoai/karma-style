@@ -8,8 +8,15 @@
   // and max-age=86400, so Cloudflare can pin a stale shot for up to 24h after a
   // studio re-render. Bump V on each release (kept in lockstep with the ?v= on
   // css/js in index.html) so corrected images surface immediately.
-  var V = "043";
+  var V = "044";
   var img = function (slug, role) { return "/img/" + slug + "/" + role + ".webp?v=" + V; };
+  // Per-product shot curation (products.json): `hide` lists broken/mangled roles
+  // that must never render anywhere; `hover` overrides the on-model hover shot.
+  // Resting card = product-only silhouette (flat/ghost); hover = model wearing it.
+  var hidden = function (p, role) { return !!(p.hide && p.hide.indexOf(role) >= 0); };
+  var pick = function (p, roles) { for (var i = 0; i < roles.length; i++) { if (!hidden(p, roles[i])) return roles[i]; } return roles[roles.length - 1]; };
+  var restRole = function (p) { return pick(p, ["flat", "ghost", "front"]); };
+  var hoverRole = function (p) { return (p.hover && !hidden(p, p.hover)) ? p.hover : pick(p, ["editorial", "life1", "tq", "front"]); };
   var byId = function (id) { return document.getElementById(id); };
   var PRODUCTS = [];
   var bySlug = {};
@@ -72,8 +79,8 @@
     byId("grid").innerHTML = PRODUCTS.map(function (p) {
       return '<article class="card" data-slug="' + p.slug + '">' +
         '<div class="frame"><span class="tag">' + p.tag + '</span>' +
-        '<img class="a" loading="lazy" src="' + img(p.slug, "front") + '" alt="' + p.name + '">' +
-        '<img class="b" loading="lazy" src="' + img(p.slug, "back") + '" alt="' + p.name + ' back">' +
+        '<img class="a" loading="lazy" src="' + img(p.slug, restRole(p)) + '" alt="' + p.name + '">' +
+        '<img class="b" loading="lazy" src="' + img(p.slug, hoverRole(p)) + '" alt="' + p.name + ' on model">' +
         '<div class="quick"><span class="btn">View</span></div></div>' +
         '<div class="meta"><span class="nm">' + p.name + '</span><span class="pr">' + money(p.price) + '</span></div>' +
         '</article>';
@@ -82,13 +89,15 @@
   }
   function renderLook() {
     var shots = [];
-    PRODUCTS.forEach(function (p) { shots.push(img(p.slug, "life1"), img(p.slug, "editorial"), img(p.slug, "life2")); });
+    PRODUCTS.forEach(function (p) {
+      ["editorial", "tq", "life1"].forEach(function (r) { if (!hidden(p, r)) shots.push(img(p.slug, r)); });
+    });
     byId("look").innerHTML = shots.map(function (s) { return '<img loading="lazy" src="' + s + '" alt="Karma lookbook">'; }).join("");
   }
   function renderSocial() {
     // Community grid from real brand imagery, linking to @karma_bikinis.
     var pool = [];
-    PRODUCTS.forEach(function (p) { pool.push(img(p.slug, "life1"), img(p.slug, "life2")); });
+    PRODUCTS.forEach(function (p) { pool.push(img(p.slug, "editorial"), img(p.slug, hidden(p, "life1") ? "tq" : "life1")); });
     var ig = "https://www.instagram.com/karma_bikinis";
     byId("sgrid").innerHTML = pool.slice(0, 12).map(function (s) {
       return '<a href="' + ig + '" target="_blank" rel="noopener"><img loading="lazy" src="' + s + '" alt="Karma on Instagram"></a>';
@@ -101,8 +110,8 @@
     var p = bySlug[slug]; if (!p) { go("/shop"); return; }
     pdSize = "M";
     byId("pdpName").textContent = p.name;
-    var order = [["front", "wide"], ["back", ""], ["tq", ""], ["life1", ""], ["flat", ""], ["ghost", ""], ["life2", ""], ["editorial", ""]];
-    byId("pdpGallery").innerHTML = order.map(function (o) {
+    var order = [["front", "wide"], ["flat", ""], ["ghost", ""], ["tq", ""], ["back", ""], ["editorial", ""], ["life1", ""], ["life2", ""]];
+    byId("pdpGallery").innerHTML = order.filter(function (o) { return !hidden(p, o[0]); }).map(function (o) {
       return '<img class="' + o[1] + '" loading="lazy" src="' + img(p.slug, o[0]) + '" alt="' + p.name + ' ' + o[0] + '">';
     }).join("");
     byId("pdpInfo").innerHTML =

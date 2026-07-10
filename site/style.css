@@ -28,7 +28,7 @@ header{position:fixed;top:0;left:0;right:0;z-index:50;height:var(--hh);
   display:flex;align-items:center;transition:background .3s ease,border-color .3s ease,color .3s ease;
   border-bottom:1px solid transparent;color:#fff}
 header .wrap{display:flex;align-items:center;gap:26px;width:100%}
-header .logo{height:22px;display:block}
+header .logo{height:32px;display:flex;align-items:center;flex-shrink:0}
 header .logo img{height:100%;width:auto;display:block}
 header .logo .lw{display:none} header .logo .lb{display:block}
 header nav{display:flex;gap:26px;margin-left:8px}
@@ -39,7 +39,10 @@ header .bag{display:inline-flex;align-items:center;gap:8px;font-size:13px;letter
   background:none;border:0;color:inherit;cursor:pointer}
 header .bag .n{min-width:20px;height:20px;border:1px solid currentColor;border-radius:0;
   font-size:11px;letter-spacing:.02em;display:inline-flex;align-items:center;justify-content:center;padding:0 5px}
-.menu-btn{display:none;background:none;border:0;color:inherit;font-size:20px;cursor:pointer}
+header .bag .ico{display:block}
+.menu-btn{display:none;background:none;border:0;color:inherit;cursor:pointer;
+  padding:6px;margin-right:-6px;align-items:center;justify-content:center}
+.menu-btn svg{display:block}
 /* solid state */
 header.solid{background:rgba(255,255,255,.9);backdrop-filter:blur(16px);
   border-bottom-color:var(--line);color:var(--fg)}
@@ -53,9 +56,11 @@ header.on-hero .logo .lw{display:block} header.on-hero .logo .lb{display:none}
   transition:transform .4s cubic-bezier(.4,0,.1,1),opacity .3s ease}
 .mmenu.open{transform:none;opacity:1;pointer-events:auto}
 .mm-top{display:flex;align-items:center;justify-content:space-between;height:var(--hh)}
-.mm-top .logo{height:22px;display:block}
+.mm-top .logo{height:28px;display:flex;align-items:center}
 .mm-top .logo img{height:100%;width:auto;display:block}
-.mm-close{background:none;border:0;font-size:23px;line-height:1;cursor:pointer;color:var(--fg)}
+.mm-close{background:none;border:0;line-height:1;cursor:pointer;color:var(--fg);
+  display:inline-flex;align-items:center;justify-content:center;padding:6px;margin-right:-6px}
+.mm-close svg{display:block}
 .mm-nav{display:flex;flex-direction:column;margin-top:22px}
 .mm-nav a{font-size:clamp(34px,11vw,54px);font-weight:600;letter-spacing:-.02em;line-height:1.16;
   color:var(--fg);padding:6px 0}
@@ -294,7 +299,7 @@ body.route-page .page{display:block}
 @media(max-width:640px){
   :root{--gutter:20px}
   header nav{display:none}
-  .menu-btn{display:block}
+  .menu-btn{display:inline-flex}
   header .sp{flex:1}
   .sec{padding:64px 0}
   .look{columns:1}

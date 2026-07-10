@@ -1,0 +1,28 @@
+# Canonical CI/CD — imports the shared hanzoai/ci reusable workflow, which reads
+# the repo-root hanzo.yml (images + deploy). No per-repo build logic, no
+# GitHub-hosted runners. A push to main (or a v* tag) builds
+# ghcr.io/hanzoai/karma-style and rolls it onto the `karma-style` Service CR
+# (hanzo.yml deploy, on: [main]); PRs build but never deploy.
+#
+# karma-style previously relied on the platform.hanzo.ai build webhook, which is
+# the non-canonical path (and is currently 502). This is the same ~7-line shape
+# every hanzo/lux/zoo repo uses — matching hanzoai/world (a peer static site on
+# the same do-sfo3-hanzo-k8s / namespace hanzo deploy target).
+name: CI/CD
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  cicd:
+    uses: hanzoai/ci/.github/workflows/build.yml@v1
+    # Target the Hanzo arc scale set by installation name — ARC scale sets match
+    # by name, not the [self-hosted,linux,amd64] label triple ci@v1 defaults to;
+    # without this the job sits queued forever.
+    with:
+      runner: '["hanzo-build-linux-amd64"]'
+    secrets: inherit

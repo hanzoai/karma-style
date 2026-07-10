@@ -314,3 +314,42 @@ body.route-page .page{display:block}
   .press .marks{gap:28px}
   .press img{height:20px}
 }
+
+/* ---------- header search affordance ---------- */
+header .search-btn{display:inline-flex;align-items:center;gap:9px;background:none;border:0;
+  color:inherit;cursor:pointer;padding:0;-webkit-tap-highlight-color:transparent}
+header .search-btn svg{display:block}
+header .search-btn .kk{font-family:"Geist Mono",monospace;font-size:10px;letter-spacing:.06em;
+  line-height:1;border:1px solid currentColor;padding:3px 5px;opacity:.6}
+@media(max-width:640px){header .search-btn .kk{display:none}}
+
+/* ---------- command palette (Cmd/Ctrl+K) ---------- */
+.cmdk{position:fixed;inset:0;z-index:100;display:none}
+.cmdk.open{display:block}
+.cmdk-scrim{position:absolute;inset:0;background:rgba(10,10,10,.44)}
+.cmdk-box{position:relative;width:600px;max-width:92vw;margin:11vh auto 0;background:#fff;
+  border:1px solid var(--fg);box-shadow:0 30px 90px rgba(0,0,0,.30);display:flex;flex-direction:column;
+  max-height:72vh;animation:cmdkin .16s ease}
+@keyframes cmdkin{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:none}}
+.cmdk-head{display:flex;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid var(--line)}
+.cmdk-head svg{color:var(--dim);flex-shrink:0;display:block}
+.cmdk-head input{flex:1;min-width:0;border:0;outline:none;background:none;font-family:inherit;
+  font-size:16px;color:var(--fg)}
+.cmdk-head input::placeholder{color:var(--dim)}
+.cmdk-head input:focus-visible{outline:none}
+.cmdk-head kbd{font-family:"Geist Mono",monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--mut);border:1px solid var(--line2);padding:3px 6px;line-height:1}
+.cmdk-list{overflow-y:auto;padding:6px}
+.cmdk-item{display:flex;align-items:center;gap:13px;padding:10px 12px;cursor:pointer}
+.cmdk-item .ci-thumb{width:34px;height:44px;object-fit:cover;background:var(--soft);flex-shrink:0}
+.cmdk-item .ci-l{flex:1;min-width:0}
+.cmdk-item .ci-n{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cmdk-item .ci-s{font-size:12px;color:var(--dim);font-family:"Geist Mono",monospace;margin-top:2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cmdk-item .ci-k{font-family:"Geist Mono",monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--dim);flex-shrink:0}
+.cmdk-item.sel{background:var(--fg)}
+.cmdk-item.sel .ci-n{color:#fff}
+.cmdk-item.sel .ci-s,.cmdk-item.sel .ci-k{color:rgba(255,255,255,.72)}
+.cmdk-empty{padding:28px 14px;text-align:center;color:var(--dim);font-size:13px}
+@media(max-width:640px){.cmdk-box{margin:0;width:100%;max-width:none;height:100%;max-height:100%;border:0}}

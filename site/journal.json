@@ -1,0 +1,34 @@
+{
+  "posts": [
+    {
+      "file": "journal/ss26_launch_brief.md",
+      "slug": "signature",
+      "design": null,
+      "channel": "campaign",
+      "title": "Signature — Launch Brief",
+      "teaser": "Signature: two suits, one point of view. Valentina in crushed velvet, the Scarlet One-Piece in matte red. Now at karma.style.",
+      "hero": null,
+      "status": "queued"
+    },
+    {
+      "file": "journal/redonepiece_journal.md",
+      "slug": "redonepiece",
+      "design": "redonepiece",
+      "channel": "blog",
+      "title": "The Case for One Colour",
+      "teaser": "A clean scarlet maillot with a sculpted open back. Seamless, sun-ready, made to photograph.",
+      "hero": "/img/redonepiece/front.webp",
+      "status": "queued"
+    },
+    {
+      "file": "journal/valentina_journal.md",
+      "slug": "valentina",
+      "design": "valentina",
+      "channel": "blog",
+      "title": "Valentina, in Velvet",
+      "teaser": "Deep-wine crushed velvet, gold open-heart hardware, a full thigh-wrap garter. The story of our most-requested set.",
+      "hero": "/img/valentina/life1.webp",
+      "status": "queued"
+    }
+  ]
+}

@@ -8,7 +8,7 @@
   // and max-age=86400, so Cloudflare can pin a stale shot for up to 24h after a
   // studio re-render. Bump V on each release (kept in lockstep with the ?v= on
   // css/js in index.html) so corrected images surface immediately.
-  var V = "049";
+  var V = "050";
   var img = function (slug, role) { return "/img/" + slug + "/" + role + ".webp?v=" + V; };
   // Per-product shot curation (products.json): `hide` lists broken/mangled roles
   // that must never render anywhere; `hover` overrides the on-model hover shot.
@@ -206,6 +206,11 @@
     var url = path.split("#"); var p = url[0]; var hash = url[1];
     var m;
     if ((m = p.match(/^\/product\/([\w-]+)/))) { setRoute("product"); renderPDP(m[1]); window.scrollTo(0, 0); }
+    else if (p === "/journal" || p.indexOf("/journal/") === 0) {
+      setRoute("page");
+      if (window.KARMA_JOURNAL) window.KARMA_JOURNAL.render(byId("pageBody"), p.replace(/^\/journal\/?/, ""));
+      window.scrollTo(0, 0);
+    }
     else if ((m = p.replace(/^\//, "").match(/^([a-z]+)$/)) && PAGES[m[1]]) { setRoute("page"); renderPage(m[1]); window.scrollTo(0, 0); }
     else { // home (incl. /shop, /)
       setRoute("home"); document.title = "Karma Bikinis — Swimwear, made to photograph";

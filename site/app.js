@@ -38,6 +38,9 @@
       .then(function (r) { return r.ok ? r.json() : {}; })
       .catch(function () { return {}; })
       .then(function (cfg) {
+        // Single source of runtime config: stash the whole object so other
+        // modules (journal.js -> CMS tenant binding) read it without re-fetching.
+        window.KARMA_CONFIG = cfg || {};
         if (cfg && (cfg.commerceHost || cfg.commerceStore || cfg.commerceToken)) {
           window.KARMA_COMMERCE_CONFIG = {
             base: cfg.commerceHost || "https://commerce.hanzo.ai",

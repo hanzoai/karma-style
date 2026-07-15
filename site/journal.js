@@ -1,16 +1,28 @@
-// Karma Bikinis — the Journal. Renders the queued editorial (blog + campaign)
-// from /journal.json, which sync-journal.py materializes from the ONE canonical
-// asset library (s3://hanzo-studio/orgs/karma/output/library.json). No second
-// source of copy: approve/queue a post with karma-queue.py, run sync-journal.py,
-// and it appears here. app.js routes /journal and /journal/<slug> into #pageBody
-// and calls KARMA_JOURNAL.render(el, slug).
+// Karma Bikinis — the Journal. PRIMARY source is the public Hanzo CMS
+// (cms.hanzo.ai, karma tenant), reached SAME-ORIGIN via the hanzoai/spa
+// PROXY_API mount (/api/* -> in-cluster `cms` Service on the karma-style CR) so
+// there is no CORS and reads sit behind the same gate/edge as the site. Each
+// published CMS page is a Lexical richText doc; mapCMS() renders it
+// (headings / paragraphs / lists / bold / italic / code / links + an upload
+// hero) into the SAME post shape the list & detail views already consume.
+//
+// FAIL-SOFT: if no tenant is configured, or the CMS is unreachable / returns
+// nothing, we fall back to the versioned /journal.json that sync-journal.py
+// materializes from the approved asset library — the Journal is never empty.
+//
+// app.js routes /journal and /journal/<slug> into #pageBody and calls
+// KARMA_JOURNAL.render(el, slug).
 window.KARMA_JOURNAL = (function () {
   var V = (window.KARMA_ASSET_V || "1");
+  // Same-origin CMS base: hanzoai/spa reverse-proxies /api/* to the cms Service
+  // when PROXY_API is set on the karma-style CR. The tenant comes from the CR
+  // too (SPA_CMS_TENANT_ID -> /config.json cmsTenantId, read via KARMA_CONFIG).
+  var CMS_BASE = "/api";
   var cache = null;
 
-  // Minimal, safe-enough Markdown: headings, bold, italics, links, paragraphs.
-  // Input is our own trusted library copy (not user content).
   function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+
+  // ---- journal.json fallback: minimal Markdown (headings/bold/italics/links) ----
   function inline(s) {
     return esc(s)
       .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
@@ -35,16 +47,84 @@ window.KARMA_JOURNAL = (function () {
     return out.join("\n");
   }
 
-  function load(cb) {
-    if (cache) return cb(cache);
-    // Versioned so a release busts Cloudflare's edge cache (an un-versioned
-    // /journal.json can pin a stale 404 from before the journal shipped).
+  // ---- Lexical (CMS richText) -> HTML ----
+  // text.format is a bitmask: 1 bold, 2 italic, 16 code (others ignored, safe).
+  function fmt(t, f) {
+    if (f & 16) t = "<code>" + t + "</code>";
+    if (f & 2) t = "<em>" + t + "</em>";
+    if (f & 1) t = "<strong>" + t + "</strong>";
+    return t;
+  }
+  function mediaURL(v) {
+    if (!v || typeof v !== "object") return "";
+    // value.url is already the same-origin CMS path (/api/media/file/..?prefix=hanzo).
+    return v.url || (v.filename ? CMS_BASE + "/media/file/" + encodeURIComponent(v.filename) + "?prefix=hanzo" : "");
+  }
+  function kids(n) { return (n.children || []).map(lx).join(""); }
+  function lx(n) {
+    switch (n.type) {
+      case "text": return fmt(esc(n.text || ""), n.format || 0);
+      case "linebreak": return "<br>";
+      case "link": var f = n.fields || {}, nt = f.newTab ? ' target="_blank" rel="noopener"' : ""; return '<a href="' + esc(f.url || "#") + '"' + nt + ">" + kids(n) + "</a>";
+      case "heading": var tg = /^h[1-6]$/.test(n.tag || "") ? n.tag : "h3"; return "<" + tg + ">" + kids(n) + "</" + tg + ">";
+      case "paragraph": var p = kids(n); return p.trim() ? "<p>" + p + "</p>" : "";
+      case "list": var lt = (n.tag === "ol" || n.listType === "number") ? "ol" : "ul"; return "<" + lt + ">" + kids(n) + "</" + lt + ">";
+      case "listitem": return "<li>" + kids(n) + "</li>";
+      case "quote": return "<blockquote>" + kids(n) + "</blockquote>";
+      case "upload": var s = mediaURL(n.value); return s ? '<img src="' + esc(s) + '" alt="' + esc((n.value && n.value.alt) || "") + '" loading="lazy">' : "";
+      default: return kids(n);
+    }
+  }
+  function plain(n) { return n.type === "text" ? (n.text || "") : (n.children || []).map(plain).join(""); }
+  function teaserOf(children) {
+    for (var i = 0; i < children.length; i++) {
+      if (children[i].type === "paragraph") {
+        var t = plain(children[i]).trim();
+        if (t) return t.length > 170 ? t.slice(0, 167).replace(/\s+\S*$/, "") + "…" : t;
+      }
+    }
+    return "";
+  }
+  function mapCMS(doc) {
+    var root = (doc.content && doc.content.root) || { children: [] };
+    var children = root.children || [];
+    var hero = null, body = [];
+    children.forEach(function (c) {
+      if (!hero && c.type === "upload") { hero = mediaURL(c.value); return; } // first upload = hero (shown separately)
+      body.push(c);
+    });
+    return { slug: doc.slug, title: doc.title, teaser: teaserOf(children), hero: hero, channel: "journal", html: body.map(lx).join("\n") };
+  }
+
+  // ---- load: CMS primary, journal.json fallback ----
+  function loadJson(cb) {
     fetch("/journal.json?v=" + V).then(function (r) { return r.ok ? r.json() : { posts: [] }; })
       .catch(function () { return { posts: [] }; })
       .then(function (d) { cache = (d.posts || []); cb(cache); });
   }
+  function load(cb) {
+    if (cache) return cb(cache);
+    var tenant = (window.KARMA_CONFIG || {}).cmsTenantId;
+    if (!tenant) return loadJson(cb); // CMS not configured -> approved library
+    var url = CMS_BASE + "/pages?where%5B_status%5D%5Bequals%5D=published&where%5Btenant%5D%5Bequals%5D=" +
+      encodeURIComponent(tenant) + "&depth=1&limit=50&sort=-createdAt";
+    fetch(url, { headers: { Accept: "application/json" } })
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function (d) {
+        var posts = (d.docs || []).map(mapCMS);
+        if (!posts.length) return loadJson(cb); // published-but-empty -> fallback
+        cache = posts; cb(cache);
+      })
+      .catch(function () { loadJson(cb); }); // CMS down / blocked -> fallback
+  }
 
-  function heroImg(p) { return p.hero ? '<img src="' + p.hero + "?v=" + V + '" alt="" loading="lazy">' : ""; }
+  function heroImg(p) {
+    if (!p.hero) return "";
+    // Local /img assets take the release cache-bust; CMS /api (already carries
+    // ?prefix=hanzo) and absolute URLs are used verbatim.
+    var src = (/^(https?:)?\/\//.test(p.hero) || p.hero.indexOf("/api/") === 0) ? p.hero : (p.hero + "?v=" + V);
+    return '<img src="' + src + '" alt="" loading="lazy">';
+  }
 
   function renderList(el, posts) {
     document.title = "Journal — Karma Bikinis";
@@ -60,12 +140,16 @@ window.KARMA_JOURNAL = (function () {
 
   function renderPost(el, p) {
     document.title = p.title + " — Karma Bikinis";
+    // CMS posts carry pre-rendered `html` (Lexical -> HTML); journal.json posts
+    // reference a Markdown `file` fetched below.
     el.innerHTML = '<article class="jpost"><a class="jback" href="/journal" data-link>← Journal</a>' +
       (p.hero ? '<div class="jposthero">' + heroImg(p) + "</div>" : "") +
-      '<div class="jbody">Loading…</div></article>';
-    fetch("/" + p.file + "?v=" + V).then(function (r) { return r.text(); })
-      .then(function (md) { el.querySelector(".jbody").innerHTML = md2html(md); })
-      .catch(function () { el.querySelector(".jbody").innerHTML = "<p>Post unavailable.</p>"; });
+      '<div class="jbody">' + (p.html != null ? p.html : "Loading…") + "</div></article>";
+    if (p.html == null && p.file) {
+      fetch("/" + p.file + "?v=" + V).then(function (r) { return r.text(); })
+        .then(function (md) { el.querySelector(".jbody").innerHTML = md2html(md); })
+        .catch(function () { el.querySelector(".jbody").innerHTML = "<p>Post unavailable.</p>"; });
+    }
   }
 
   function render(el, slug) {

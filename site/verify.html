@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Karma — commerce + analytics + replay, verified</title>
+<style>
+  :root{color-scheme:light}
+  *{box-sizing:border-box}
+  body{margin:0;font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:#111;background:#fafafa}
+  .wrap{max-width:980px;margin:0 auto;padding:40px 22px 80px}
+  h1{font-size:30px;letter-spacing:-.02em;margin:0 0 6px}
+  h2{font-size:18px;letter-spacing:-.01em;margin:38px 0 12px;padding-top:20px;border-top:1px solid #eee}
+  .sub{color:#666;margin:0 0 8px}
+  code,pre{font-family:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,monospace}
+  code{background:#f0f0f0;border-radius:4px;padding:1px 5px;font-size:.86em}
+  table{border-collapse:collapse;width:100%;font-size:13.5px;margin:6px 0 4px;display:block;overflow-x:auto}
+  th,td{border:1px solid #e6e6e6;padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#f4f4f4;font-weight:600;white-space:nowrap}
+  td code{background:#f4f4f4}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:8px}
+  @media (max-width:760px){.grid{grid-template-columns:1fr}}
+  .card{background:#fff;border:1px solid #ececec;border-radius:12px;padding:16px 18px}
+  .btns{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 12px}
+  button.fire{appearance:none;border:1px solid #111;background:#111;color:#fff;border-radius:9px;padding:9px 14px;font-size:14px;cursor:pointer;transition:opacity .15s}
+  button.fire:hover{opacity:.85}
+  button.ghost{background:#fff;color:#111}
+  pre.console{background:#0d0d0f;color:#e6e6e6;border-radius:12px;padding:16px;overflow:auto;max-height:440px;font-size:12.5px;line-height:1.5;margin:0}
+  pre.console .k{color:#7dd3fc}.pre .n{color:#a7f3d0}
+  .ev{border-left:3px solid #34d399;padding:2px 0 2px 10px;margin:0 0 12px}
+  .ev .nm{color:#fbbf24;font-weight:600}
+  .pill{display:inline-block;font-size:11px;font-weight:600;border-radius:20px;padding:2px 9px;border:1px solid #ddd;color:#555;background:#fff}
+  .pill.on{background:#052e1c;color:#6ee7b7;border-color:#065f46}
+  .pill.warn{background:#3a2a05;color:#fcd34d;border-color:#92400e}
+  .muted{color:#888;font-size:13px}
+  a{color:#111}
+  /* sample product for the Annotate() demo */
+  .demoprod{display:flex;gap:14px;align-items:center;border:1px dashed #d6d6d6;border-radius:12px;padding:14px;background:#fff;margin:6px 0}
+  .demoprod .px{width:60px;height:60px;border-radius:8px;background:linear-gradient(135deg,#6d213c,#2a0a15)}
+  .demoprod .nm{font-weight:600}
+  .foot{margin-top:40px;color:#999;font-size:12.5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Karma — the native stack, verified</h1>
+  <p class="sub">The Karma checkout flow is annotated with <b>schema.org microdata</b> and <b>shadcn-style <code>data-slot</code></b>, emits <b>standard GA4 ecommerce events</b> through <code>track.js</code> to <code>https://api.hanzo.ai/v1/analytics</code>, checks out through the <code>checkout.js</code> widget, and records a privacy-masked session replay. This page fires each event live and shows the exact payload.</p>
+  <p class="muted">Packages (published to npm, vendored locally — no runtime CDN): <code>track.js@0.2.19</code> → <code>window.HanzoTrack</code>, <code>checkout.js@2.1.22</code> → <code>window.HanzoCheckout</code>. <code>shop.js@3.0.31</code> / <code>commerce.js@7.4.1</code> are the React/Next surface (shop.js wraps checkout.js); this vanilla storefront wires checkout.js directly.</p>
+
+  <h2>1 · What fires when — event → annotation → destination</h2>
+  <table>
+    <tr><th>GA4 event</th><th>Fires on</th><th>Annotation that marks it</th><th>Key params</th><th>Lands at</th></tr>
+    <tr><td><code>view_item</code></td><td>Product page open</td><td><code>[itemscope] Product</code> + <code>Offer</code> on <code>#pdpInfo</code>, <code>data-slot="product"</code></td><td><code>currency, value, items[]</code></td><td rowspan="5">POST <code>/v1/analytics</code> → WS-A adapters → Umami · PostHog · GA4 · Meta CAPI</td></tr>
+    <tr><td><code>add_to_cart</code></td><td>Add to bag</td><td><code>AddAction</code> on the button, <code>data-slot="add-to-cart"</code></td><td><code>value, items[{item_variant}]</code></td></tr>
+    <tr><td><code>begin_checkout</code></td><td>Checkout click</td><td><code>OrderAction</code> on the button, <code>data-slot="checkout"</code></td><td><code>value, items[]</code></td></tr>
+    <tr><td><code>purchase</code></td><td><code>/thank-you</code> (order confirm)</td><td>order stashed at checkout start</td><td><code>transaction_id, value, items[]</code></td></tr>
+    <tr><td><code>content-view</code> / <code>content-click</code></td><td>Any <code>[itemscope]</code> seen / clicked</td><td><code>Annotate()</code> reads <code>itemtype</code>+<code>itemprop</code></td><td><code>type, selector, name, price…</code></td></tr>
+  </table>
+  <p class="muted">Meta CAPI bridge: every ecommerce event also carries top-level <code>content_ids</code> + <code>content_type:"product"</code> alongside <code>value</code>/<code>currency</code>. GA4 <code>items[].item_id</code> ↔ Meta <code>content_ids</code>.</p>
+
+  <h2>2 · Fire the standard events (live)</h2>
+  <div class="btns">
+    <button class="fire" data-ev="view_item">view_item</button>
+    <button class="fire" data-ev="add_to_cart">add_to_cart</button>
+    <button class="fire" data-ev="begin_checkout">begin_checkout</button>
+    <button class="fire" data-ev="purchase">purchase</button>
+    <button class="fire ghost" id="clear">clear</button>
+  </div>
+  <p class="muted">A sample product for <code>Annotate()</code> — scroll it into view or click it to fire <code>content-view</code>/<code>content-click</code>:</p>
+  <div class="demoprod" itemscope itemtype="https://schema.org/Product" data-slot="product-card">
+    <meta itemprop="sku" content="valentina">
+    <span class="px"></span>
+    <div>
+      <div class="nm" itemprop="name">Valentina</div>
+      <div class="muted" itemprop="offers" itemscope itemtype="https://schema.org/Offer">
+        <meta itemprop="priceCurrency" content="USD"><meta itemprop="price" content="158">
+        <link itemprop="availability" href="https://schema.org/InStock">$158 · Signature
+      </div>
+    </div>
+  </div>
+  <div class="grid">
+    <div class="card">
+      <div class="muted" style="margin-bottom:6px">Emitted event (high level)</div>
+      <div id="events"><span class="muted">Click a button above…</span></div>
+    </div>
+    <div class="card">
+      <div class="muted" style="margin-bottom:6px">Exact POST body to <code>/v1/analytics</code> (track.js native)</div>
+      <pre class="console" id="wire">// waiting…</pre>
+    </div>
+  </div>
+
+  <h2>3 · Checkout widget</h2>
+  <p class="sub"><code>checkout.js</code> → <span id="coStatus" class="pill warn">checking…</span></p>
+  <p class="muted">On click, the storefront calls <code>HanzoCheckout.create({apiKey}).createSession({lineItems}).redirectToCheckout()</code> → hosted checkout at <code>api.hanzo.ai/v1/checkout</code>. Card fields live on that cross-origin page and never enter the Karma DOM, so replay cannot capture them by construction. Enabled by the CTO setting <code>SPA_CHECKOUT_KEY</code> (a publishable <code>pk_…</code> key).</p>
+
+  <h2>4 · Session replay</h2>
+  <p class="sub">Recorder → <span id="rpStatus" class="pill warn">checking…</span></p>
+  <p class="muted">The recorder (hanzoai/rrweb <code>blue/session-replay</code> → insights.hanzo.ai) is not published yet, so replay ships as a wired, opt-in mount point. It lights up when the CTO sets <code>SPA_REPLAY_SRC</code> to the recorder URL — no code change. Privacy: opt-in consent, <code>maskAllInputs</code>, and hard-block on <code>[data-slot="payment"]</code> / <code>.rr-block</code> / <code>data-private</code>; email fields carry <code>.rr-mask</code>.</p>
+  <div class="btns"><button class="fire ghost" id="consent">grant replay consent</button> <span id="consentNote" class="muted"></span></div>
+
+  <h2>5 · What the CTO sets (karma-style Service CR, SPA_* env → /config.json)</h2>
+  <table>
+    <tr><th>Env on the CR</th><th>config.json key</th><th>What</th></tr>
+    <tr><td><code>SPA_ANALYTICS_TOKEN</code></td><td><code>analyticsToken</code></td><td>Published, org-scoped (karma) WRITE-ONLY analytics token → track.js native</td></tr>
+    <tr><td><code>SPA_CHECKOUT_KEY</code></td><td><code>checkoutKey</code></td><td>Publishable <code>pk_live_…</code>/<code>pk_test_…</code> key → checkout.js widget</td></tr>
+    <tr><td><code>SPA_REPLAY_SRC</code></td><td><code>replaySrc</code></td><td>Session-replay recorder script URL (lights replay up)</td></tr>
+    <tr><td class="muted" colspan="3">Optional: <code>SPA_ANALYTICS_HOST</code>, <code>SPA_CHECKOUT_HOST</code> (default <code>https://api.hanzo.ai</code>), <code>SPA_REPLAY_SINK</code> (default <code>https://insights.hanzo.ai/v1/replay</code>), <code>SPA_REPLAY_CONSENT=auto</code>. Existing: <code>SPA_COMMERCE_HOST/STORE/TOKEN</code> (Square fallback).</td></tr>
+  </table>
+  <p class="foot">No secrets in the repo. Tokens are publishable / write-only, delivered at runtime via <code>/config.json</code>. Vendored bundles are same-origin (no CDN). This page: <code>noindex</code>.</p>
+</div>
+
+<!-- The exact same published packages + layers the storefront loads -->
+<script src="/vendor/track.min.js"></script>
+<script src="/vendor/checkout.global.js"></script>
+<script src="/analytics.js"></script>
+<script src="/checkout.js"></script>
+<script src="/replay.js"></script>
+<script>
+(function () {
+  var wire = document.getElementById("wire");
+  var events = document.getElementById("events");
+  var firstEvent = true;
+
+  // Intercept POSTs to /v1/analytics to display the exact wire payload. For this
+  // demo page we DISPLAY only (do not forward the demo token to the live endpoint).
+  var realFetch = window.fetch;
+  window.fetch = function (url, opts) {
+    try {
+      if (typeof url === "string" && url.indexOf("/v1/analytics") >= 0 && opts && opts.body) {
+        var parsed = JSON.parse(opts.body);
+        wire.textContent = "POST " + url + "\nAuthorization: " + ((opts.headers && opts.headers.Authorization) || "(none)") +
+          "\n\n" + JSON.stringify(parsed, null, 2);
+        return Promise.resolve({ ok: true, status: 200, json: function () { return Promise.resolve({}); } });
+      }
+    } catch (e) {}
+    return realFetch.apply(this, arguments);
+  };
+
+  // Initialize analytics with a demo token so the native transport is live.
+  window.KARMA_ANALYTICS.init({ analyticsToken: "pk_demo_verify_token", analyticsHost: "https://api.hanzo.ai", analyticsProduct: "karma" });
+  window.KARMA_ANALYTICS.annotate();   // annotate the sample Product on this page
+  window.KARMA_CHECKOUT.init({});       // no key here → shows "not configured"
+  window.KARMA_REPLAY.init({});         // no src here → shows "pending"
+
+  // Render high-level events as karmaEcom emits them.
+  window.addEventListener("karma:ecom", function (e) {
+    if (firstEvent) { events.innerHTML = ""; firstEvent = false; }
+    var d = e.detail;
+    var el = document.createElement("div");
+    el.className = "ev";
+    el.innerHTML = '<div><span class="nm">' + d.event + '</span></div><div class="muted" style="white-space:pre-wrap">' + JSON.stringify(d.params) + '</div>';
+    events.insertBefore(el, events.firstChild);
+  });
+
+  var sampleProduct = { slug: "valentina", name: "Valentina", price: 158, tag: "Signature", collection: null };
+  var sampleCart = [
+    { slug: "valentina", name: "Valentina", price: 158, size: "M", qty: 1, collection: null },
+    { slug: "sol-bikini-top-in-risky-red", name: "Sol bikini top", price: 62, size: "S", qty: 2, collection: "endless-summer" }
+  ];
+  var handlers = {
+    view_item: function () { window.karmaEcom.viewItem(sampleProduct, { slot: "product" }); },
+    add_to_cart: function () { window.karmaEcom.addToCart(sampleProduct, { size: "M", qty: 1, slot: "add-to-cart" }); },
+    begin_checkout: function () { window.karmaEcom.beginCheckout(sampleCart, { slot: "checkout" }); },
+    purchase: function () { window.karmaEcom.purchase({ items: sampleCart.map(function (c) { return { item_id: c.slug, item_name: c.name, item_brand: "Karma Bikinis", item_category: c.collection || "Swim", item_variant: c.size, price: c.price, quantity: c.qty }; }), value: 282, transaction_id: "karma_demo_" + Date.now() }); }
+  };
+  Array.prototype.forEach.call(document.querySelectorAll("button.fire[data-ev]"), function (b) {
+    b.addEventListener("click", function () { handlers[b.getAttribute("data-ev")](); });
+  });
+  document.getElementById("clear").addEventListener("click", function () {
+    events.innerHTML = '<span class="muted">Click a button above…</span>'; firstEvent = true; wire.textContent = "// waiting…";
+  });
+
+  // Status pills
+  function pill(id, ok, onText, offText) {
+    var el = document.getElementById(id);
+    el.textContent = ok ? onText : offText;
+    el.className = "pill " + (ok ? "on" : "warn");
+  }
+  pill("coStatus", window.KARMA_CHECKOUT.ready(), "ready", "not configured (set SPA_CHECKOUT_KEY)");
+  var rp = window.KARMA_REPLAY.status();
+  pill("rpStatus", rp === "recording", rp === "recording" ? "recording (masked)" : rp, rp);
+  document.getElementById("consent").addEventListener("click", function () {
+    window.KARMA_REPLAY.grantConsent();
+    var s = window.KARMA_REPLAY.status();
+    document.getElementById("consentNote").textContent = "consent granted · status: " + s + (s === "pending" ? " (awaiting SPA_REPLAY_SRC)" : "");
+  });
+})();
+</script>
+</body>
+</html>

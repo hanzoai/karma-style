@@ -15,7 +15,21 @@
 <link rel="preload" href="/fonts/GeistVF.woff2" as="font" type="font/woff2" crossorigin>
 <!-- Fixed-name assets are edge-cached 24h (hanzoai/spa max-age=86400); index.html
      is no-cache. Bump ?v= on every release so CSS/JS never serve stale. -->
-<link rel="stylesheet" href="/style.css?v=051">
+<link rel="stylesheet" href="/style.css?v=052">
+<!-- schema.org JSON-LD: brand + site. Hanzo Analytics' Annotate() reads this and
+     emits a `content-schema` signal; it also feeds SEO / rich results. -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    { "@type": "Organization", "@id": "https://karma.style/#org", "name": "Karma Bikinis",
+      "url": "https://karma.style", "logo": "https://karma.style/img/brand/karma-black.png",
+      "sameAs": ["https://www.instagram.com/karma_bikinis", "https://www.tiktok.com/@karma_bikinis"] },
+    { "@type": "WebSite", "@id": "https://karma.style/#site", "name": "Karma Bikinis",
+      "url": "https://karma.style", "publisher": { "@id": "https://karma.style/#org" } }
+  ]
+}
+</script>
 </head>
 <body>
 
@@ -37,7 +51,7 @@
       <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20.5 20.5 16 16"/></svg>
       <kbd class="kk">&#8984;K</kbd>
     </button>
-    <button class="bag" id="bagBtn" aria-label="Open bag">
+    <button class="bag" id="bagBtn" data-slot="cart-open" aria-label="Open bag">
       <svg class="ico" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2 3 6.2V20a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6.2L18 2H6Z"/><path d="M3 6.2h18"/><path d="M16 10.2a4 4 0 0 1-8 0"/></svg>
       <span class="n" id="bagCount">0</span>
     </button>
@@ -167,7 +181,7 @@
 <div class="pdp"><div class="wrap inner">
   <div class="crumbs"><a href="/" data-link>Karma</a> / <a href="/shop" data-link>Shop</a> / <span id="pdpName"></span></div>
   <div class="layout">
-    <div class="gallery" id="pdpGallery"></div>
+    <div class="gallery" id="pdpGallery" data-slot="product-gallery"></div>
     <div class="info" id="pdpInfo"></div>
   </div>
 </div></div>
@@ -182,7 +196,7 @@
         <h4>Newsletter</h4>
         <p>New collections, first.</p>
         <form id="newsForm" autocomplete="off">
-          <input type="email" id="newsEmail" placeholder="Email address" aria-label="Email address" required>
+          <input type="email" id="newsEmail" class="rr-mask" placeholder="Email address" aria-label="Email address" required>
           <button type="submit">Join →</button>
         </form>
         <div class="ok" id="newsOk"></div>
@@ -224,24 +238,33 @@
 </footer>
 
 <div class="scrim" id="scrim"></div>
-<aside class="cart" id="cart">
+<aside class="cart" id="cart" data-slot="cart">
   <h3>Your bag <button id="cartClose" aria-label="Close">✕</button></h3>
   <div class="items" id="cartItems"></div>
   <div class="foot">
     <div class="row"><span>Subtotal</span><span class="mono" id="cartTotal">$0</span></div>
-    <button class="btn block" id="checkoutBtn">Checkout</button>
+    <button class="btn block" id="checkoutBtn" data-slot="checkout" itemscope itemtype="https://schema.org/OrderAction">Checkout</button>
     <div class="note" id="cartNote">Shipping calculated at checkout · exchanges within 10 days</div>
   </div>
 </aside>
 
 <div class="toast" id="toast"></div>
 
-<script>window.KARMA_ASSET_V="051";</script>
-<script src="/content.js?v=051"></script>
-<script src="/journal.js?v=051"></script>
-<script src="/commerce.js?v=051"></script>
-<script src="/app.js?v=051"></script>
-<!-- Analytics (Hanzo Analytics, scoped to the Karma org) -->
+<script>window.KARMA_ASSET_V="052";</script>
+<!-- Hanzo commerce + analytics packages (published to npm, vendored locally — no
+     runtime CDN). track.min.js = track.js@0.2.19 (window.HanzoTrack);
+     checkout.global.js = checkout.js@2.1.22 (window.HanzoCheckout). -->
+<script src="/vendor/track.min.js?v=052"></script>
+<script src="/vendor/checkout.global.js?v=052"></script>
+<script src="/content.js?v=052"></script>
+<script src="/journal.js?v=052"></script>
+<script src="/commerce.js?v=052"></script>
+<!-- Karma layers: standard GA4 ecommerce events + Annotate, checkout widget, replay -->
+<script src="/analytics.js?v=052"></script>
+<script src="/checkout.js?v=052"></script>
+<script src="/replay.js?v=052"></script>
+<script src="/app.js?v=052"></script>
+<!-- Page analytics (Hanzo Analytics / Umami, scoped to the Karma org) -->
 <script defer src="https://analytics.hanzo.ai/script.js" data-website-id="019cc3e3-0062-48e1-9f8d-3110079881d9" data-domains="karma.style,www.karma.style"></script>
 <script>window.karmaTrack=function(n,d){try{window.umami&&window.umami.track(n,d||{})}catch(e){}};</script>
 <!-- KARMA_AI_WIDGET -->

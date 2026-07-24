@@ -118,6 +118,55 @@ kubectl --context do-sfo3-hanzo-k8s -n hanzo rollout status deploy/karma-style
 redonepiece catalog webp live. commerce.hanzo.ai 200; karma sandbox checkout →
 live Square sandbox link via `POST /v1/checkout/sessions`.
 
+## Commerce + analytics + replay — the native stack demo
+
+The checkout flow is instrumented as the end-to-end proof of Hanzo's native
+analytics + commerce stack. Standards-only annotation (schema.org microdata +
+shadcn-style `data-slot`; **no** `data-hanzo-*`).
+
+**Published packages, vendored locally (no runtime CDN — `site/vendor/`):**
+| File | Package | Global | sha256 |
+|------|---------|--------|--------|
+| `vendor/track.min.js` | `track.js@0.2.19` (Hanzo Analytics), bundled IIFE (esbuild; `scratchpad/vendorbuild/build.mjs`) | `window.HanzoTrack` | `ee226d53…59a6` |
+| `vendor/checkout.global.js` | `checkout.js@2.1.22` (verbatim npm `dist/checkout.global.js`) | `window.HanzoCheckout` | `1b524fa9…765c` |
+
+`shop.js@3.0.31` / `commerce.js@7.4.1` are the React/Next surface (shop.js *wraps*
+checkout.js); this vanilla storefront wires `checkout.js` directly. Migrating to
+Next later = drop in shop.js.
+
+**Site layers (`site/`):**
+- `analytics.js` — `window.karmaEcom` emits standard **GA4 ecommerce events**
+  (`view_item`/`add_to_cart`/`begin_checkout`/`purchase`) with `{currency,value,
+  items[],content_ids,content_type,slot}` → `track.js` native → `POST
+  https://api.hanzo.ai/v1/analytics` (Bearer, batch envelope). Runs `Annotate()`
+  → `content-view`/`content-click`/`content-schema` from schema.org. Mirrors a
+  flat summary to Umami. `content_ids`/`content_type` are the Meta CAPI bridge.
+- `checkout.js` — `window.KARMA_CHECKOUT` drives the checkout.js widget
+  (`HanzoCheckout.create({apiKey}).createSession({lineItems}).redirectToCheckout()`
+  → hosted checkout at `api.hanzo.ai/v1/checkout`). Stashes the order; `/thank-you`
+  fires `purchase`. Falls back to the existing commerce (Square) path.
+- `replay.js` — `window.KARMA_REPLAY`: opt-in, privacy-masked session replay
+  (`maskAllInputs`, block `[data-slot="payment"]`/`.rr-block`/`data-private`,
+  `.rr-mask` text). Idle mount point until `SPA_REPLAY_SRC` names the recorder
+  (hanzoai/rrweb `blue/session-replay` → insights.hanzo.ai), then lights up with
+  no code change. Card fields never enter the DOM (checkout is cross-origin) →
+  replay-safe by construction.
+- `app.js` — cards/PDP annotated (`Product`+`Offer`, `AddAction` on add-to-cart,
+  `OrderAction` on checkout, `data-slot` on every control); emits the standard
+  events at each step; `/thank-you` route.
+- `verify.html` (`/verify.html`, noindex) — the "look, it works" artifact: the
+  event→annotation→destination map + a live harness that fires each event and
+  shows the exact `/v1/analytics` payload.
+
+**CTO sets on the karma-style Service CR (SPA_* env → `/config.json`):**
+`SPA_ANALYTICS_TOKEN` (Published, org-scoped karma, write-only) →
+`analyticsToken`; `SPA_CHECKOUT_KEY` (publishable `pk_…`) → `checkoutKey`;
+`SPA_REPLAY_SRC` (recorder URL) lights up replay. Optional: `SPA_ANALYTICS_HOST`,
+`SPA_CHECKOUT_HOST` (default `api.hanzo.ai`), `SPA_REPLAY_SINK` (default
+`insights.hanzo.ai/v1/replay`), `SPA_REPLAY_CONSENT=auto`. No secrets in the repo;
+tokens are publishable/write-only, delivered at runtime. Branch:
+`blue/karma-checkout-demo`.
+
 ## Still blocked (external)
 - **Live Square** (real charges): karma points at the sandbox
   (`commerce-api.testnet.hanzo.ai`, `SQUARE_ENVIRONMENT=sandbox`). Go-live needs

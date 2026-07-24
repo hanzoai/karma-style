@@ -22,11 +22,15 @@
     try { return location.origin; } catch (e) { return "https://karma.style"; }
   }
 
-  // cart item -> checkout.js line item. unitPrice is the SMALLEST currency unit
-  // (cents) per the checkout.js contract; our catalog price is in dollars.
+  // cart item -> checkout.js line item. The server (commerce /v1/checkout/sessions)
+  // reprices every line from its catalog reference and IGNORES the client unitPrice,
+  // so `productSlug` is what makes the hosted line carry the real catalog name +
+  // price; WITHOUT it the server falls back to a legacy custom item (wrong name +
+  // price). unitPrice/name are display-only (unitPrice in the smallest currency unit).
   function lineItemsOf(cart) {
     return cart.map(function (i) {
       return {
+        productSlug: i.slug,
         id: i.slug,
         name: i.name + (i.size ? " · " + i.size : ""),
         unitPrice: Math.round((Number(i.price) || 0) * 100),
@@ -83,7 +87,7 @@
         lineItems: lineItemsOf(cart),
         currency: "USD",
         successUrl: origin() + "/thank-you?ok=1&txn=" + encodeURIComponent(txn),
-        cancelUrl: origin() + "/shop",
+        cancelUrl: origin() + "/shop?checkout=cancel",
         metadata: { source: "karma.style", transaction_id: txn }
       }).then(function (session) {
         return client.redirectToCheckout(session);

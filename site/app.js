@@ -8,7 +8,7 @@
   // and max-age=86400, so Cloudflare can pin a stale shot for up to 24h after a
   // studio re-render. Bump V on each release (kept in lockstep with the ?v= on
   // css/js in index.html) so corrected images surface immediately.
-  var V = "052";
+  var V = "053";
   var img = function (slug, role) { return "/img/" + slug + "/" + role + ".webp?v=" + V; };
   // Per-product shot curation (products.json): `hide` lists broken/mangled roles
   // that must never render anywhere; `hover` overrides the on-model hover shot.
@@ -23,6 +23,8 @@
   var restRole = function (p) { return p.gallery ? "front" : pick(p, ["flat", "ghost", "front"]); };
   var hoverRole = function (p) { return p.gallery ? (p.gallery.indexOf("back") >= 0 ? "back" : "front") : ((p.hover && !hidden(p, p.hover)) ? p.hover : pick(p, ["editorial", "life1", "tq", "front"])); };
   var byId = function (id) { return document.getElementById(id); };
+  // Read one query param off the current URL (proves the paid checkout round-trip).
+  var qp = function (name) { try { return new URLSearchParams(location.search).get(name); } catch (e) { return null; } };
   var PRODUCTS = [];
   var bySlug = {};
   var COLLECTIONS = { order: [], meta: {} };
@@ -238,18 +240,34 @@
   }
 
   // Order-confirmation page (return from the hosted checkout). Fires the standard
-  // GA4 `purchase` for the order stashed at checkout start, then clears the bag.
+  // GA4 `purchase` ONLY for a proven paid round-trip: the hosted checkout's success
+  // redirect carries ?ok=1 and the exact txn the order was minted with. A bare
+  // /thank-you visit — manual nav, back button, or a cancel that never paid — has no
+  // matching proof, so it must NOT emit purchase (that would poison GA4 revenue and
+  // Meta CAPI with unpaid conversions). takePendingOrder() clears the stash either
+  // way, preserving the refresh once-guard. The Square fallback lands here with no
+  // stash and no query — it never emitted purchase and still doesn't.
   function thankYou() {
     var order = null;
     try { order = window.KARMA_CHECKOUT && window.KARMA_CHECKOUT.takePendingOrder(); } catch (e) {}
-    if (order && window.karmaEcom) window.karmaEcom.purchase(order);
+    var paid = qp("ok") === "1" && !!order && qp("txn") === order.transaction_id;
+    if (paid && window.karmaEcom) window.karmaEcom.purchase(order);
     cart = []; save();
     document.title = "Thank you — Karma Bikinis";
     byId("pageBody").innerHTML =
       '<div class="eyebrow">Order confirmed</div><h1>Thank you.</h1>' +
       '<p class="lead">Your order is in. A confirmation email is on its way — every piece is made carefully and ships from San Francisco with tracking.</p>' +
-      (order ? '<p>Order reference <b>' + esc(order.transaction_id || "") + '</b> · ' + ((order.items || []).length) + ' item(s) · total ' + money(order.value || 0) + '.</p>' : '') +
+      (paid ? '<p>Order reference <b>' + esc(order.transaction_id || "") + '</b> · ' + ((order.items || []).length) + ' item(s) · total ' + money(order.value || 0) + '.</p>' : '') +
       '<div style="margin-top:24px"><a class="btn" href="/shop" data-link>Continue shopping</a></div>';
+  }
+
+  // Hosted-checkout cancel return (/shop?checkout=cancel): drop the pre-payment stash
+  // so it can never be read later as a completed order, keep the shopper's bag, and
+  // strip the marker so a refresh doesn't repeat the notice.
+  function cancelCheckout() {
+    try { window.KARMA_CHECKOUT && window.KARMA_CHECKOUT.takePendingOrder(); } catch (e) {}
+    try { history.replaceState({}, "", "/shop"); } catch (e) {}
+    toast("Checkout cancelled — your bag is saved.");
   }
 
   // ---------------- router ----------------
@@ -271,6 +289,7 @@
     else if ((m = p.replace(/^\//, "").match(/^([a-z]+)$/)) && PAGES[m[1]]) { setRoute("page"); renderPage(m[1]); window.scrollTo(0, 0); }
     else { // home (incl. /shop, /)
       setRoute("home"); document.title = "Karma Bikinis — Swimwear, made to photograph";
+      if (qp("checkout") === "cancel") cancelCheckout();
       if (p === "/shop") scrollToId("shop"); else if (hash) scrollToId(hash); else if (animate) window.scrollTo(0, 0);
     }
     updateHeader();

@@ -54,7 +54,7 @@
     <tr><td><code>view_item</code></td><td>Product page open</td><td><code>[itemscope] Product</code> + <code>Offer</code> on <code>#pdpInfo</code>, <code>data-slot="product"</code></td><td><code>currency, value, items[]</code></td><td rowspan="5">POST <code>/v1/analytics</code> → WS-A adapters → Umami · PostHog · GA4 · Meta CAPI</td></tr>
     <tr><td><code>add_to_cart</code></td><td>Add to bag</td><td><code>AddAction</code> on the button, <code>data-slot="add-to-cart"</code></td><td><code>value, items[{item_variant}]</code></td></tr>
     <tr><td><code>begin_checkout</code></td><td>Checkout click</td><td><code>OrderAction</code> on the button, <code>data-slot="checkout"</code></td><td><code>value, items[]</code></td></tr>
-    <tr><td><code>purchase</code></td><td><code>/thank-you</code> (order confirm)</td><td>order stashed at checkout start</td><td><code>transaction_id, value, items[]</code></td></tr>
+    <tr><td><code>purchase</code></td><td><code>/thank-you</code> (order confirm)</td><td>order stashed at checkout start; fires only on the proven paid return (<code>?ok=1</code> + matching <code>txn</code>)</td><td><code>transaction_id, value, items[]</code></td></tr>
     <tr><td><code>content-view</code> / <code>content-click</code></td><td>Any <code>[itemscope]</code> seen / clicked</td><td><code>Annotate()</code> reads <code>itemtype</code>+<code>itemprop</code></td><td><code>type, selector, name, price…</code></td></tr>
   </table>
   <p class="muted">Meta CAPI bridge: every ecommerce event also carries top-level <code>content_ids</code> + <code>content_type:"product"</code> alongside <code>value</code>/<code>currency</code>. GA4 <code>items[].item_id</code> ↔ Meta <code>content_ids</code>.</p>
@@ -92,7 +92,7 @@
 
   <h2>3 · Checkout widget</h2>
   <p class="sub"><code>checkout.js</code> → <span id="coStatus" class="pill warn">checking…</span></p>
-  <p class="muted">On click, the storefront calls <code>HanzoCheckout.create({apiKey}).createSession({lineItems}).redirectToCheckout()</code> → hosted checkout at <code>api.hanzo.ai/v1/checkout</code>. Card fields live on that cross-origin page and never enter the Karma DOM, so replay cannot capture them by construction. Enabled by the CTO setting <code>SPA_CHECKOUT_KEY</code> (a publishable <code>pk_…</code> key).</p>
+  <p class="muted">On click, the storefront calls <code>HanzoCheckout.create({apiKey}).createSession({lineItems}).redirectToCheckout()</code> → hosted checkout at <code>api.hanzo.ai/v1/checkout</code>. Card fields live on that cross-origin page and never enter the Karma DOM, so replay cannot capture them by construction. Enabled by the CTO setting <code>SPA_CHECKOUT_KEY</code> (a publishable <code>pk_…</code> key). The widget sends a catalog reference (<code>productSlug</code>) the server reprices by, so the hosted line carries the real product name + price — before enabling in prod, place one live <b>test order</b> and confirm that on the hosted/Square line item.</p>
 
   <h2>4 · Session replay</h2>
   <p class="sub">Recorder → <span id="rpStatus" class="pill warn">checking…</span></p>

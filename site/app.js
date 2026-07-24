@@ -8,7 +8,7 @@
   // and max-age=86400, so Cloudflare can pin a stale shot for up to 24h after a
   // studio re-render. Bump V on each release (kept in lockstep with the ?v= on
   // css/js in index.html) so corrected images surface immediately.
-  var V = "051";
+  var V = "052";
   var img = function (slug, role) { return "/img/" + slug + "/" + role + ".webp?v=" + V; };
   // Per-product shot curation (products.json): `hide` lists broken/mangled roles
   // that must never render anywhere; `hover` overrides the on-model hover shot.
@@ -48,6 +48,11 @@
             token: cfg.commerceToken || ""
           };
         }
+        // One config source feeds all Hanzo layers: analytics (track.js native ->
+        // /v1/analytics), checkout (checkout.js widget), and session replay.
+        try { window.KARMA_ANALYTICS && window.KARMA_ANALYTICS.init(cfg); } catch (e) {}
+        try { window.KARMA_CHECKOUT && window.KARMA_CHECKOUT.init(cfg); } catch (e) {}
+        try { window.KARMA_REPLAY && window.KARMA_REPLAY.init(cfg); } catch (e) {}
         loadProducts();
       });
   }
@@ -58,6 +63,9 @@
       PRODUCTS.forEach(function (p) { bySlug[p.slug] = p; });
       renderGrid(); renderLook(); renderSocial(); renderCart();
       route(location.pathname + location.hash, false);
+      // Cards now exist: run Annotate() once so schema.org [itemscope]/[itemprop]
+      // emit content-view / content-click signals (delegated click covers later DOM).
+      try { window.KARMA_ANALYTICS && window.KARMA_ANALYTICS.annotate(); } catch (e) {}
       // best-effort: reconcile prices/availability with live commerce
       if (window.KARMA_COMMERCE) window.KARMA_COMMERCE.loadCatalog().then(function (live) {
         if (!live) return;
@@ -75,9 +83,10 @@
   function add(slug, size) {
     var p = bySlug[slug]; if (!p) return;
     var id = slug + "|" + size, ex = cart.filter(function (i) { return i.id === id; })[0];
-    if (ex) ex.qty++; else cart.push({ id: id, slug: slug, size: size, name: p.name, price: p.price, qty: 1 });
+    if (ex) ex.qty++; else cart.push({ id: id, slug: slug, size: size, name: p.name, price: p.price, qty: 1, collection: p.collection });
     save(); toast((isPre(p) ? "Pre-order reserved · " : "") + p.name + " · " + size); openCart();
-    if (window.karmaTrack) window.karmaTrack("add_to_cart", { slug: slug });
+    // Standard GA4 `add_to_cart` (currency + value + items[] + variant) -> /v1/analytics.
+    if (window.karmaEcom) window.karmaEcom.addToCart(p, { size: size, qty: 1, slot: "add-to-cart" });
   }
   function setQty(id, d) { var it = cart.filter(function (i) { return i.id === id; })[0]; if (!it) return; it.qty += d; if (it.qty <= 0) cart = cart.filter(function (i) { return i.id !== id; }); save(); }
   function remove(id) { cart = cart.filter(function (i) { return i.id !== id; }); save(); }
@@ -85,17 +94,30 @@
   var total = function () { return cart.reduce(function (s, i) { return s + i.qty * i.price; }, 0); };
 
   // ---------------- render: collection ----------------
+  // schema.org availability enum (URL form) — read by Hanzo Analytics' Annotate().
+  var availHref = function (p) { return isPre(p) ? "https://schema.org/PreOrder" : "https://schema.org/InStock"; };
   function cardHTML(p) {
     var pre = isPre(p);
-    return '<article class="card' + (pre ? ' pre' : '') + '" data-slug="' + p.slug + '">' +
+    // Product microdata (itemscope Product + nested Offer) + shadcn-style data-slot.
+    return '<article class="card' + (pre ? ' pre' : '') + '" data-slug="' + p.slug + '" data-slot="product-card"' +
+      ' itemscope itemtype="https://schema.org/Product">' +
+      '<meta itemprop="sku" content="' + p.slug + '">' +
+      '<meta itemprop="name" content="' + esc(p.name) + '">' +
+      '<meta itemprop="category" content="' + esc(p.tag || "Swim") + '">' +
+      '<meta itemprop="image" content="' + img(p.slug, restRole(p)) + '">' +
       '<div class="frame">' +
         (pre ? '<span class="soldout">Sold out</span>' : '') +
         '<span class="tag">' + p.tag + '</span>' +
         '<img class="a" loading="lazy" src="' + img(p.slug, restRole(p)) + '" alt="' + p.name + '">' +
         '<img class="b" loading="lazy" src="' + img(p.slug, hoverRole(p)) + '" alt="' + p.name + (pre ? '' : ' on model') + '">' +
-        '<div class="quick"><span class="btn">' + (pre ? "Pre-order" : "View") + '</span></div>' +
+        '<div class="quick"><span class="btn" data-slot="product-view">' + (pre ? "Pre-order" : "View") + '</span></div>' +
       '</div>' +
-      '<div class="meta"><span class="nm">' + p.name + '</span><span class="pr">' + money(p.price) + '</span></div>' +
+      '<div class="meta" itemprop="offers" itemscope itemtype="https://schema.org/Offer">' +
+        '<meta itemprop="priceCurrency" content="USD">' +
+        '<meta itemprop="price" content="' + (Number(p.price) || 0) + '">' +
+        '<link itemprop="availability" href="' + availHref(p) + '">' +
+        '<span class="nm">' + p.name + '</span><span class="pr">' + money(p.price) + '</span>' +
+      '</div>' +
       '</article>';
   }
   function sectionHTML(key, title, blurb, items) {
@@ -157,23 +179,38 @@
       ? '<div class="opt"><div class="lab">Colour' + (p.colors.length > 1 ? "s" : "") + '</div><div class="chips">' +
           p.colors.map(function (c) { return '<span class="cchip">' + c + '</span>'; }).join("") + '</div></div>'
       : "";
+    // Add-to-cart button annotated as schema.org AddAction (+ data-slot).
+    var addBtn = 'id="pdAdd" data-slot="add-to-cart" itemprop="potentialAction" itemscope itemtype="https://schema.org/AddAction"';
     var buys = pre
-      ? '<button class="btn block" id="pdAdd">Pre-order — ' + money(p.price) + '</button>' +
+      ? '<button class="btn block" ' + addBtn + '>Pre-order — ' + money(p.price) + '</button>' +
         '<div class="prenote">Sold out — pre-order to bring it back. We produce the run once enough of you reserve it, and you’re not charged until it ships.</div>'
-      : '<button class="btn block" id="pdAdd">Add to bag — ' + money(p.price) + '</button>' +
-        '<a class="btn line block" href="https://tryon.karma.style?design=' + p.slug + '">Try it on</a>';
-    byId("pdpInfo").innerHTML =
-      '<div class="tag">' + (meta.title || p.tag) + '</div><h1>' + p.name + '</h1>' +
-      '<div class="price">' + money(p.price) + (pre ? ' <span class="soldpill">Sold out</span>' : "") + '</div>' +
-      '<p class="desc">' + p.blurb + '</p>' +
+      : '<button class="btn block" ' + addBtn + '>Add to bag — ' + money(p.price) + '</button>' +
+        '<a class="btn line block" data-slot="tryon" href="https://tryon.karma.style?design=' + p.slug + '">Try it on</a>';
+    // The product page is one schema.org Product scope (set on #pdpInfo) with a
+    // nested Offer. Hanzo Analytics' Annotate() reads it; we also emit the standard
+    // GA4 `view_item` explicitly below.
+    var info = byId("pdpInfo");
+    info.setAttribute("itemscope", ""); info.setAttribute("itemtype", "https://schema.org/Product");
+    info.setAttribute("data-slot", "product");
+    info.innerHTML =
+      '<meta itemprop="sku" content="' + p.slug + '">' +
+      '<meta itemprop="image" content="' + img(p.slug, restRole(p)) + '">' +
+      '<meta itemprop="brand" content="Karma Bikinis">' +
+      '<div class="tag">' + (meta.title || p.tag) + '</div><h1 itemprop="name">' + p.name + '</h1>' +
+      '<div class="price" itemprop="offers" itemscope itemtype="https://schema.org/Offer">' +
+        '<meta itemprop="priceCurrency" content="USD">' +
+        '<meta itemprop="price" content="' + (Number(p.price) || 0) + '">' +
+        '<link itemprop="availability" href="' + availHref(p) + '">' +
+        money(p.price) + (pre ? ' <span class="soldpill">Sold out</span>' : "") + '</div>' +
+      '<p class="desc" itemprop="description">' + p.blurb + '</p>' +
       colorsRow +
       '<div class="spec">' +
         '<div><span>Fabric</span><span>' + p.fabric + '</span></div>' +
         '<div><span>Fit</span><span>' + p.fit + '</span></div>' +
         '<div><span>' + (pre ? "Availability" : "Ships") + '</span><span>' + (pre ? "Pre-order · made to order" : "3–5 business days") + '</span></div>' +
       '</div>' +
-      '<div class="sizes"><div class="lab">Size</div><div class="row" id="pdSizes">' +
-        SIZES.map(function (s) { return '<button data-size="' + s + '" class="' + (s === "M" ? "sel" : "") + '">' + s + '</button>'; }).join("") +
+      '<div class="sizes"><div class="lab">Size</div><div class="row" id="pdSizes" data-slot="size-selector">' +
+        SIZES.map(function (s) { return '<button data-size="' + s + '" data-slot="size-option" class="' + (s === "M" ? "sel" : "") + '">' + s + '</button>'; }).join("") +
       '</div></div>' +
       '<div class="buys">' + buys + '</div>' +
       (pre ? "" : '<div class="trylink">Not sure on fit? <a href="https://tryon.karma.style?design=' + p.slug + '">See it on your own photo →</a></div>') +
@@ -188,7 +225,8 @@
       Array.prototype.forEach.call(byId("pdSizes").children, function (x) { x.classList.toggle("sel", x === b); });
     });
     byId("pdAdd").addEventListener("click", function () { add(p.slug, pdSize); });
-    if (window.karmaTrack) window.karmaTrack("view_product", { slug: slug });
+    // Standard GA4 `view_item` (currency + value + items[]) -> /v1/analytics.
+    if (window.karmaEcom) window.karmaEcom.viewItem(p, { slot: "product" });
   }
 
   // ---------------- render: content page ----------------
@@ -197,6 +235,21 @@
     byId("pageBody").innerHTML =
       '<div class="eyebrow">' + (pg.eyebrow || "") + '</div><h1>' + pg.title + '</h1>' + pg.html;
     document.title = pg.title + " — Karma Bikinis";
+  }
+
+  // Order-confirmation page (return from the hosted checkout). Fires the standard
+  // GA4 `purchase` for the order stashed at checkout start, then clears the bag.
+  function thankYou() {
+    var order = null;
+    try { order = window.KARMA_CHECKOUT && window.KARMA_CHECKOUT.takePendingOrder(); } catch (e) {}
+    if (order && window.karmaEcom) window.karmaEcom.purchase(order);
+    cart = []; save();
+    document.title = "Thank you — Karma Bikinis";
+    byId("pageBody").innerHTML =
+      '<div class="eyebrow">Order confirmed</div><h1>Thank you.</h1>' +
+      '<p class="lead">Your order is in. A confirmation email is on its way — every piece is made carefully and ships from San Francisco with tracking.</p>' +
+      (order ? '<p>Order reference <b>' + esc(order.transaction_id || "") + '</b> · ' + ((order.items || []).length) + ' item(s) · total ' + money(order.value || 0) + '.</p>' : '') +
+      '<div style="margin-top:24px"><a class="btn" href="/shop" data-link>Continue shopping</a></div>';
   }
 
   // ---------------- router ----------------
@@ -214,6 +267,7 @@
       if (window.KARMA_JOURNAL) window.KARMA_JOURNAL.render(byId("pageBody"), p.replace(/^\/journal\/?/, ""));
       window.scrollTo(0, 0);
     }
+    else if (p === "/thank-you") { setRoute("page"); thankYou(); window.scrollTo(0, 0); }
     else if ((m = p.replace(/^\//, "").match(/^([a-z]+)$/)) && PAGES[m[1]]) { setRoute("page"); renderPage(m[1]); window.scrollTo(0, 0); }
     else { // home (incl. /shop, /)
       setRoute("home"); document.title = "Karma Bikinis — Swimwear, made to photograph";
@@ -268,10 +322,10 @@
     var box = byId("cartItems");
     if (!cart.length) { box.innerHTML = '<div class="empty">Your bag is empty.</div>'; return; }
     box.innerHTML = cart.map(function (i) {
-      return '<div class="ci"><img src="' + img(i.slug, "front") + '" alt="' + i.name + '">' +
+      return '<div class="ci" data-slot="cart-line-item"><img src="' + img(i.slug, "front") + '" alt="' + i.name + '">' +
         '<div class="g"><div class="n">' + i.name + '</div><div class="s">Size ' + i.size + '</div>' +
-        '<div class="qty"><button data-q="-1" data-id="' + i.id + '">−</button><span>' + i.qty + '</span><button data-q="1" data-id="' + i.id + '">+</button></div></div>' +
-        '<div style="text-align:right"><div class="p">' + money(i.price * i.qty) + '</div><button class="rm" data-rm="' + i.id + '">Remove</button></div></div>';
+        '<div class="qty"><button data-q="-1" data-id="' + i.id + '" data-slot="qty-dec">−</button><span>' + i.qty + '</span><button data-q="1" data-id="' + i.id + '" data-slot="qty-inc">+</button></div></div>' +
+        '<div style="text-align:right"><div class="p">' + money(i.price * i.qty) + '</div><button class="rm" data-rm="' + i.id + '" data-slot="cart-remove">Remove</button></div></div>';
     }).join("");
     Array.prototype.forEach.call(box.querySelectorAll("[data-q]"), function (b) { b.addEventListener("click", function () { setQty(b.dataset.id, +b.dataset.q); }); });
     Array.prototype.forEach.call(box.querySelectorAll("[data-rm]"), function (b) { b.addEventListener("click", function () { remove(b.dataset.rm); }); });
@@ -280,21 +334,25 @@
   // ---------------- checkout ----------------
   byId("checkoutBtn").addEventListener("click", function () {
     if (!cart.length) { toast("Your bag is empty"); return; }
-    if (window.karmaTrack) window.karmaTrack("begin_checkout", { value: total() });
-    var note = byId("cartNote");
-    if (window.KARMA_COMMERCE && window.KARMA_COMMERCE.ready()) {
-      byId("checkoutBtn").disabled = true; byId("checkoutBtn").textContent = "Redirecting…";
-      window.KARMA_COMMERCE.checkout(cart).then(function (url) {
-        if (url) { location.href = url; } else throw new Error("no_url");
-      }).catch(function () {
-        byId("checkoutBtn").disabled = false; byId("checkoutBtn").textContent = "Checkout";
-        note.innerHTML = 'Secure checkout is activating for Karma — your bag is saved. Email <a href="mailto:hello@karma.style">hello@karma.style</a> to complete your order today.';
-        toast("Checkout activating — bag saved");
-      });
-    } else {
+    var btn = byId("checkoutBtn"), note = byId("cartNote");
+    // Standard GA4 `begin_checkout` (currency + value + items[]) -> /v1/analytics.
+    if (window.karmaEcom) window.karmaEcom.beginCheckout(cart, { value: total(), slot: btn.getAttribute("data-slot") });
+    function activating() {
+      btn.disabled = false; btn.textContent = "Checkout";
       note.innerHTML = 'Secure checkout is activating for Karma — your bag is saved. Email <a href="mailto:hello@karma.style">hello@karma.style</a> to complete your order today.';
       toast("Checkout activating — bag saved");
     }
+    function square() {
+      if (window.KARMA_COMMERCE && window.KARMA_COMMERCE.ready()) {
+        window.KARMA_COMMERCE.checkout(cart).then(function (url) { if (url) location.href = url; else activating(); }).catch(activating);
+      } else activating();
+    }
+    btn.disabled = true; btn.textContent = "Redirecting…";
+    // Prefer the checkout.js widget (api.hanzo.ai/v1/checkout); on any failure fall
+    // back to the existing commerce (Square) path, then to the honest activating state.
+    if (window.KARMA_CHECKOUT && window.KARMA_CHECKOUT.ready()) {
+      window.KARMA_CHECKOUT.start(cart, { value: total() }).catch(square);
+    } else square();
   });
 
   // ---------------- newsletter ----------------

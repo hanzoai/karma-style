@@ -5,15 +5,20 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
 <title>Karma — commerce + analytics + replay, verified</title>
+<!-- Zen, same as the storefront: the faces come from @hanzo/design, copied
+     under /zen at image build. This page carries its own <style>, so it links
+     the font sheet itself rather than inheriting one. -->
+<link rel="preload" href="/zen/assets/fonts/Zen-Variable.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/zen/tokens/fonts.css?v=054">
 <style>
   :root{color-scheme:light}
   *{box-sizing:border-box}
-  body{margin:0;font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:#111;background:#fafafa}
+  body{margin:0;font-size:15px;line-height:1.55;font-family:var(--font-sans);color:#111;background:#fafafa}
   .wrap{max-width:980px;margin:0 auto;padding:40px 22px 80px}
   h1{font-size:30px;letter-spacing:-.02em;margin:0 0 6px}
   h2{font-size:18px;letter-spacing:-.01em;margin:38px 0 12px;padding-top:20px;border-top:1px solid #eee}
   .sub{color:#666;margin:0 0 8px}
-  code,pre{font-family:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,monospace}
+  code,pre{font-family:var(--font-mono)}
   code{background:#f0f0f0;border-radius:4px;padding:1px 5px;font-size:.86em}
   table{border-collapse:collapse;width:100%;font-size:13.5px;margin:6px 0 4px;display:block;overflow-x:auto}
   th,td{border:1px solid #e6e6e6;padding:8px 10px;text-align:left;vertical-align:top}

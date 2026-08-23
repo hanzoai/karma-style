@@ -1,0 +1,8 @@
+{
+  "name": "karma-style",
+  "private": true,
+  "description": "karma.style is a static site with no build step. This file exists for one reason: Zen is a declared dependency fetched at image build (see Dockerfile), so no font binary is ever vendored into this repo and the next Zen release arrives on the next build.",
+  "dependencies": {
+    "@hanzo/design": "^0.5.21"
+  }
+}

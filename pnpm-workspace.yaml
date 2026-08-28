@@ -1,0 +1,2 @@
+minimumReleaseAgeExclude:
+  - '@hanzo/design@0.5.24'

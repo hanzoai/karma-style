@@ -1,0 +1,454 @@
+/* @hanzo/design/roles.css — the shared ROLE layer.
+ *
+ * Hand-authored, and a pure consumer of the token layer: every colour, size,
+ * distance and duration below is a var() off tokens/*.css, so the knobs a
+ * reader turns through @hanzo/appearance — --type-scale, --type-ratio,
+ * --density — reach every role here for free.
+ *
+ * OPT-IN. It is not part of styles.css and nothing imports it implicitly.
+ * A surface takes it deliberately:
+ *
+ *     @layer base, roles;
+ *     @import '@hanzo/design/roles.css' layer(roles);
+ *
+ * These are the roles no component owns. Anything with behaviour — a tab, a
+ * disclosure, an input, a spinner — is an @hanzo/ui component and is not here;
+ * what is here is pure presentation, which is why it can be a class.
+ *
+ * base.css already grants the focus ring, the transition and the reduced-motion
+ * zeroing on :where(a,button,…). Roles restate none of it.
+ *
+ * TWO KINDS OF LITERAL are allowed, and only two, because neither has a token
+ * that could carry it:
+ *   - an ACCESSIBILITY FLOOR — 44px for a thumb, 24px for a pointer, the 6px
+ *     mark drawn inside one. A floor is a physical measurement of a hand; it
+ *     must not move when a reader retunes their type or density.
+ *   - a STRUCTURAL constant — the 1px hairline, a breakpoint (a media query
+ *     cannot read a custom property), and the unitless line-height ratios,
+ *     written as the fractions they are so the relation survives a retune.
+ * Every other value is a token.
+ */
+@layer roles {
+  /* ── type ──────────────────────────────────────────────────────────────
+     Structure is @hanzo/ui's H1/Paragraph; the ROLE — which rung, which ink,
+     which tracking — is here, said once instead of at every call site. */
+
+  /* The page heading. Three rungs of one ramp, so retuning --type-scale moves
+     all three together and none can drift out of relation with the others. */
+  .display {
+    font: var(--type-hero);
+    font-size: var(--text-4xl);
+    letter-spacing: var(--tracking-tight);
+    color: var(--text-primary);
+    text-wrap: balance;
+  }
+
+  @media (min-width: 640px) {
+    .display {
+      font-size: var(--text-5xl);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .display {
+      font-size: var(--text-6xl);
+    }
+  }
+
+  /* The section heading — the rung below the display. Two rungs, and it stops
+     there: a section heading is deliberately not a page heading and must not
+     grow into one at 1024. The leading is stated because it is NOT the
+     display's; --type-hero sets 1.05 and these render at their own ratios. */
+  .title {
+    font: var(--type-hero);
+    font-size: var(--text-4xl);
+    line-height: calc(2.5 / 2.25);
+    letter-spacing: var(--tracking-tight);
+    color: var(--text-primary);
+    text-wrap: balance;
+  }
+
+  /* One rung quieter, for a heading under another section's. Same role, same
+     face, same tracking — only where it stands on the ramp moves, so it is an
+     attribute rather than a second class to keep in agreement with this one. */
+  .title[data-quiet] {
+    font-size: var(--text-3xl);
+    line-height: 1.2;
+  }
+
+  @media (min-width: 640px) {
+    .title {
+      font-size: var(--text-5xl);
+      line-height: 1;
+    }
+
+    .title[data-quiet] {
+      font-size: var(--text-4xl);
+      line-height: calc(2.5 / 2.25);
+    }
+  }
+
+  /* The two lines that travel with a heading: the small caps label above one,
+     and the paragraph under it. */
+  .eyebrow {
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    line-height: calc(1.25 / 0.875);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--neutral-400);
+  }
+
+  .lede {
+    font-size: var(--text-lg);
+    line-height: var(--leading-relaxed);
+    color: var(--neutral-400);
+  }
+
+  /* ── controls ──────────────────────────────────────────────────────────
+     Three members of one set: the button, the outline, and the quiet link.
+     A caller sets a STATE on the shape rather than choosing between two
+     classes that would have to be kept in agreement. */
+
+  /* The filled weight drops the border outright instead of making it
+     transparent — a transparent border is still a border, and it would make
+     the loudest control on the page 2px wider than the quiet one beside it. */
+  .action {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: 44px;
+    padding-inline: 28px;
+    border: 1px solid var(--neutral-700);
+    border-radius: var(--radius-full);
+    font-size: var(--text-sm);
+    /* A rung carries its own leading. Naming the size alone leaves the line box
+       to whatever an ancestor sets, which is how one control ends up a pixel
+       and a half taller than the one beside it. */
+    line-height: calc(1.25 / 0.875);
+    font-weight: var(--weight-medium);
+    color: var(--pure-white);
+    text-decoration: none;
+    transition: border-color var(--duration-fast) var(--ease-in-out);
+  }
+
+  .action:hover {
+    border-color: var(--neutral-400);
+  }
+
+  .action[data-fill] {
+    border: 0;
+    background-color: var(--pure-white);
+    color: var(--pure-black);
+    transition: opacity var(--duration-fast) var(--ease-in-out);
+  }
+
+  .action[data-fill]:hover {
+    opacity: 0.9;
+  }
+
+  /* A word in an outline. Not an action — it carries no fill and no weight —
+     so the padding is the caller's, because a chip and a badge are the same
+     outline at different sizes. It brightens on approach only as a link. */
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    border: 1px solid var(--neutral-800);
+    border-radius: var(--radius-full);
+    font-size: var(--text-sm);
+    line-height: calc(1.25 / 0.875);
+    color: var(--neutral-300);
+    text-decoration: none;
+  }
+
+  a.pill {
+    transition: border-color var(--duration-fast) var(--ease-in-out);
+  }
+
+  a.pill:hover {
+    border-color: var(--neutral-600);
+  }
+
+  /* The quiet link — "View all →", "See full pricing ↗". The third member of
+     the set, and the hover is the reason it is a rule rather than props. */
+  .more {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--text-sm);
+    line-height: calc(1.25 / 0.875);
+    font-weight: var(--weight-medium);
+    color: var(--neutral-300);
+    text-decoration: none;
+    transition: color var(--duration-fast) var(--ease-in-out);
+  }
+
+  .more:hover {
+    color: var(--pure-white);
+    text-decoration: none;
+  }
+
+  /* ── surfaces ──────────────────────────────────────────────────────────
+     Card has no lift/ground API, so these are roles rather than components. */
+
+  /* A card. The defaults change nothing: no ground, and a hover ground that is
+     whatever the resting one is, so a card naming only --leaf-ground gets a
+     ground and no lift. The rise is `translate` rather than `transform` on
+     purpose — an animation library owns `transform` on most of these, and the
+     two properties compose instead of replacing each other. */
+  .leaf {
+    --leaf-pad: var(--space-4);
+    --leaf-edge: transparent;
+    --leaf-edge-hover: var(--white-15);
+    --leaf-lift: var(--pure-white);
+    --leaf-ground: transparent;
+    --leaf-ground-hover: var(--leaf-ground);
+    --leaf-rise: 0;
+    display: block;
+    height: 100%;
+    padding: var(--leaf-pad);
+    border: 1px solid var(--leaf-edge);
+    border-radius: var(--radius-xl);
+    background-color: var(--leaf-ground);
+    text-decoration: none;
+    transition:
+      border-color var(--duration-fast) var(--ease-in-out),
+      background-color var(--duration-fast) var(--ease-in-out),
+      translate var(--duration-fast) var(--ease-in-out);
+  }
+
+  .leaf:hover {
+    border-color: var(--leaf-edge-hover);
+    background-color: var(--leaf-ground-hover);
+    translate: 0 var(--leaf-rise);
+  }
+
+  .leaf [data-lift] {
+    transition: color var(--duration-fast) var(--ease-in-out);
+  }
+
+  .leaf:hover [data-lift] {
+    color: var(--leaf-lift);
+  }
+
+  /* A surface whose ground answers approach. IT ADDS NO GEOMETRY — no edge and
+     no corner — because it was born as the cell of a ruled grid, which rules
+     its own lines with a 1px gap over a neutral ground. Giving it .leaf instead
+     would put a corner on every tile and break the flush rule the grid is made
+     of. The ink is the same shape as the ground, and [data-lift] is the ink of
+     what is INSIDE, because a card whose own ink holds while a name and an
+     arrow inside it brighten is most of a page's cards. */
+  .cell {
+    --cell-lift: var(--pure-white);
+    --cell-ground: var(--pure-black);
+    --cell-ground-hover: var(--neutral-950);
+    --cell-ink: inherit;
+    --cell-ink-hover: var(--cell-ink);
+    background-color: var(--cell-ground);
+    color: var(--cell-ink);
+    transition:
+      background-color var(--duration-fast) var(--ease-in-out),
+      color var(--duration-fast) var(--ease-in-out);
+  }
+
+  .cell:hover {
+    background-color: var(--cell-ground-hover);
+    color: var(--cell-ink-hover);
+  }
+
+  .cell [data-lift] {
+    transition: color var(--duration-fast) var(--ease-in-out);
+  }
+
+  .cell:hover [data-lift] {
+    color: var(--cell-lift);
+  }
+
+  /* ── marks on approach ─────────────────────────────────────────────────
+     [data-lift] above is one of three. [data-show] is a line only OFFERED on
+     approach; [data-step] is a mark that steps toward where it goes.
+
+     NO ROLE ON THE PARENT, and that is the difference from [data-lift]. Ink is
+     the card's decision, so a card names it; presence and position are the
+     mark's, and the thing being approached is either the LINK the mark is
+     inside or whatever it sits directly in. Two selectors answer both.
+
+     THE RESTING HALF IS IN THE RULE, and that is the whole reason these exist:
+     an inline `opacity: 0` out-ranks the :hover that has to undo it, so a
+     reveal written as a style attribute beside a utility never reveals.
+
+     [data-step] names only the step. The transition rides the call site,
+     because these marks change ink AND position and a rule here would REPLACE
+     the `.leaf [data-lift]` transition rather than add to it. */
+  [data-show] {
+    opacity: 0;
+    transition: opacity var(--duration-fast) var(--ease-in-out);
+  }
+
+  a:hover [data-show],
+  :hover > [data-show] {
+    opacity: 1;
+  }
+
+  a:hover [data-step],
+  :hover > [data-step] {
+    translate: 2px 0;
+  }
+
+  /* ── the rest ──────────────────────────────────────────────────────────── */
+
+  /* Two controls that close a section: stacked on a phone, side by side from
+     40rem. GRID, not flex — a row of two is a track list, and
+     `grid-auto-flow: column` is the direction said once, while the column case
+     needs nothing said at all because a grid is already one. The breakpoint is
+     spelt out because a media query cannot read a custom property. */
+  .pair {
+    display: grid;
+    gap: var(--space-4);
+    justify-items: center;
+    justify-content: center;
+    align-items: center;
+  }
+
+  @media (min-width: 40rem) {
+    .pair {
+      grid-auto-flow: column;
+    }
+  }
+
+  /* A run of dots, one of them current. The DOT is drawn inside the target
+     rather than being it: a 6px dot sized as the control would obey the
+     pointer floor by stretching into a 6x24 bar. Sized as a target with a dot
+     in it, both are right, and the WIDTH follows the same pointer question the
+     height already asks. */
+  .dot {
+    --dot-rest: var(--white-22);
+    --dot-hover: var(--white-60);
+    --dot-on: var(--pure-white);
+    display: grid;
+    place-items: center;
+    height: 24px;
+    width: 24px;
+    border: 0;
+    background: none;
+    border-radius: var(--radius-full);
+    cursor: pointer;
+  }
+
+  .dot > * {
+    height: 6px;
+    width: 6px;
+    border-radius: var(--radius-full);
+    background-color: var(--dot-rest);
+    transition: background-color var(--duration-fast) var(--ease-in-out);
+  }
+
+  .dot:hover > * {
+    background-color: var(--dot-hover);
+  }
+
+  .dot[data-on] > * {
+    background-color: var(--dot-on);
+  }
+
+  @media (pointer: coarse) {
+    .dot {
+      width: 44px;
+    }
+  }
+
+  /* A horizontally-scrolling row that does not draw its scrollbar. The rule
+     describes what the scroller has on it rather than which part is missing. */
+  .bare {
+    scrollbar-width: none;
+  }
+
+  .bare::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* The skip link — out of the page until a keyboard reaches it, then the first
+     control on it. It is NOT `display: none` and never can be: a hidden skip
+     link is one a keyboard cannot focus, so the whole affordance goes with it.
+     A 1px box clipped to nothing is the construction that stays reachable. */
+  .skip {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border-width: 0;
+  }
+
+  .skip:focus {
+    width: auto;
+    height: auto;
+    margin: 0;
+    overflow: visible;
+    clip-path: none;
+    white-space: normal;
+    top: var(--space-4);
+    left: var(--space-4);
+    z-index: var(--z-dropdown);
+    padding: var(--space-2) var(--space-4);
+    border: 1px solid var(--neutral-700);
+    border-radius: var(--radius-full);
+    background-color: var(--pure-black);
+    font-size: var(--text-sm);
+    line-height: calc(1.25 / 0.875);
+    color: var(--pure-white);
+  }
+
+  /* `.tap` says "this is a standalone tap target". A link in a paragraph is not
+     one — stretching it to 44px would tear the line it sits in — so the floor
+     cannot name every a[href], and a link that IS a control has to say so.
+
+     A TAP TARGET IS A BOX, and the floor applies to the SMALLER SIDE. Height
+     alone is half a policy: an icon-only control has no text to widen it, so it
+     stays as narrow as its glyph however tall the rule makes it. The box is
+     unconditional; only the thumb-sized minimum tracks the pointer.
+
+     `!important` IS LOAD-BEARING and is not a shortcut. @hanzo/gui writes a
+     control's size INLINE, and an inline declaration outranks a stylesheet rule
+     on the same property at any specificity — so without it this rule is a
+     silent no-op on exactly the controls it exists for. */
+  .tap {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  @media (pointer: coarse) {
+    .tap {
+      min-height: 44px !important;
+      min-width: 44px !important;
+    }
+  }
+
+  /* Said once here, where the transitions are declared. Every call site used to
+     carry its own motion-reduce rule beside every transition — copies of one
+     policy, and one of them had been forgotten. */
+  @media (prefers-reduced-motion: reduce) {
+    .action,
+    .action[data-fill],
+    a.pill,
+    .more,
+    .leaf,
+    .leaf [data-lift],
+    .cell,
+    .cell [data-lift],
+    .dot > *,
+    [data-show] {
+      transition: none;
+    }
+
+    .leaf:hover,
+    a:hover [data-step],
+    :hover > [data-step] {
+      translate: none;
+    }
+  }
+}

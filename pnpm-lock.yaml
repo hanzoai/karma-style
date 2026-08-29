@@ -1,0 +1,23 @@
+lockfileVersion: '9.0'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+importers:
+
+  .:
+    dependencies:
+      '@hanzo/design':
+        specifier: 0.5.24
+        version: 0.5.24
+
+packages:
+
+  '@hanzo/design@0.5.24':
+    resolution: {integrity: sha512-eXoD1Q3giJ3TEx2+rtCub/xZX5j4AflWixt3TXsf3dcYrWuChxSVhzRQdDWyibXzPPtn+msCtLX11IvvcHHUzw==}
+    hasBin: true
+
+snapshots:
+
+  '@hanzo/design@0.5.24': {}

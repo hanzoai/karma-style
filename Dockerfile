@@ -21,7 +21,7 @@ WORKDIR /t
 COPY package.json ./
 RUN npm install --no-audit --no-fund --omit=dev
 
-FROM ghcr.io/hanzoai/spa:1.4.8
+FROM ghcr.io/hanzoai/spa:1.4.13
 # Copied keeping the package's own directory shape: the url() inside fonts.css
 # reads "../assets/fonts/Zen-Variable.woff2", so tokens/ and assets/ must stay
 # siblings and the stylesheet needs no rewriting. LICENSE-Zen.txt rides along

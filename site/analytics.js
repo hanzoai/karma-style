@@ -1,12 +1,12 @@
 // Karma analytics — the standard-ecommerce-events layer.
 //
-// Wires the published `track.js` (Hanzo Analytics) native integration so every
-// event lands at https://api.hanzo.ai/v1/analytics, and runs `Annotate` so the
+// Loads Hanzo's hosted tag (https://api.hanzo.ai/v1/event/tag.js), so every event
+// lands at the one ingest, https://api.hanzo.ai/v1/event, and runs `Annotate` so the
 // schema.org microdata on the storefront auto-emits content signals. On top it
 // exposes `window.karmaEcom` — GA4-standard ecommerce emitters whose event names
 // and params map 1:1 to the GA4 recommended-events schema (and, via the top-level
 // content_ids/content_type + value/currency, to Meta CAPI). The server-side WS-A
-// adapters fan these out to Umami / PostHog / GA4 / Meta.
+// adapters fan these out to GA4 / Meta and the rest.
 //
 // Nothing here throws: analytics must never break the store. Secrets are never
 // hardcoded — the write token arrives at runtime from /config.json (SPA_ANALYTICS_TOKEN
@@ -15,7 +15,8 @@
   "use strict";
   var CURRENCY = "USD";
   var BRAND = "Karma Bikinis";
-  var analytics = null;      // the track.js Analytics instance (once initialized)
+  var analytics = null;      // { track } over the hosted tag (once initialized)
+  var pending = [];          // events emitted before the tag has loaded
   var annotated = false;     // Annotate() is idempotent — run its global hooks once
   var LOG = [];              // last-50 emitted events (verify page + E2E read this)
 
@@ -65,21 +66,11 @@
     return params;
   }
 
-  // Emit one standard event: to /v1/analytics (native) AND mirror a flat summary
-  // to Umami (analytics.hanzo.ai) so the existing page-analytics keeps working.
+  // Emit one standard event to the one ingest, through the hosted tag. Events
+  // emitted before the tag has loaded wait for it.
   function emit(name, params) {
     pushLog(name, params);
     try { if (analytics) analytics.track(name, params); } catch (e) {}
-    try {
-      if (window.umami && window.umami.track) {
-        window.umami.track(name, {
-          value: params.value, currency: params.currency,
-          items: (params.content_ids || []).join(","),
-          count: (params.items || []).reduce(function (s, i) { return s + (i.quantity || 1); }, 0),
-          slot: params.slot
-        });
-      }
-    } catch (e) {}
   }
 
   var karmaEcom = {
@@ -127,15 +118,24 @@
       cfg = cfg || {};
       try {
         var token = cfg.analyticsToken;
-        if (window.HanzoTrack && token) {
-          var a = new window.HanzoTrack.Analytics();
-          a.initialize({ integrations: [{
-            type: "native",
-            token: token,
-            host: cfg.analyticsHost || "https://api.hanzo.ai",
-            product: cfg.analyticsProduct || "karma"
-          }] });
-          analytics = a;
+        if (token && !analytics) {
+          // The hosted tag sends the page view, SPA navigations and errors, loads the
+          // site's pixels only when the visitor's choice or region allows, and answers
+          // window.hanzo.track. `analytics` hands Annotate and the emitters the same call.
+          var host = (cfg.analyticsHost || "https://api.hanzo.ai").replace(/\/$/, "");
+          analytics = { track: function (n, p) {
+            if (window.hanzo && window.hanzo.track) window.hanzo.track(n, p);
+            else pending.push([n, p]);
+          } };
+          var s = document.createElement("script");
+          s.defer = true;
+          s.src = host + "/v1/event/tag.js";
+          s.setAttribute("data-key", token);
+          s.setAttribute("data-product", cfg.analyticsProduct || "karma");
+          s.onload = function () {
+            while (pending.length) { var e = pending.shift(); try { window.hanzo.track(e[0], e[1]); } catch (x) {} }
+          };
+          document.head.appendChild(s);
         }
       } catch (e) { analytics = null; }
       return this;

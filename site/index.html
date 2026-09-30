@@ -20,8 +20,8 @@
 <link rel="preload" href="/zen/assets/fonts/Zen-Variable.woff2" as="font" type="font/woff2" crossorigin>
 <!-- Fixed-name assets are edge-cached 24h (hanzoai/spa max-age=86400); index.html
      is no-cache. Bump ?v= on every release so CSS/JS never serve stale. -->
-<link rel="stylesheet" href="/zen/tokens/fonts.css?v=054">
-<link rel="stylesheet" href="/style.css?v=054">
+<link rel="stylesheet" href="/zen/tokens/fonts.css?v=055">
+<link rel="stylesheet" href="/style.css?v=055">
 <!-- schema.org JSON-LD: brand + site. Hanzo Analytics' Annotate() reads this and
      emits a `content-schema` signal; it also feeds SEO / rich results. -->
 <script type="application/ld+json">
@@ -256,23 +256,20 @@
 
 <div class="toast" id="toast"></div>
 
-<script>window.KARMA_ASSET_V="054";</script>
+<script>window.KARMA_ASSET_V="055";</script>
 <!-- Hanzo commerce + analytics packages (published to npm, vendored locally — no
-     runtime CDN). track.min.js = track.js@0.2.19 (window.HanzoTrack);
+     runtime CDN). track.min.js = track.js@0.2.19 (window.HanzoTrack.Annotate only; events go through the hosted tag);
      checkout.global.js = checkout.js@2.1.22 (window.HanzoCheckout). -->
-<script src="/vendor/track.min.js?v=054"></script>
-<script src="/vendor/checkout.global.js?v=054"></script>
-<script src="/content.js?v=054"></script>
-<script src="/journal.js?v=054"></script>
-<script src="/commerce.js?v=054"></script>
+<script src="/vendor/track.min.js?v=055"></script>
+<script src="/vendor/checkout.global.js?v=055"></script>
+<script src="/content.js?v=055"></script>
+<script src="/journal.js?v=055"></script>
+<script src="/commerce.js?v=055"></script>
 <!-- Karma layers: standard GA4 ecommerce events + Annotate, checkout widget, replay -->
-<script src="/analytics.js?v=054"></script>
-<script src="/checkout.js?v=054"></script>
-<script src="/replay.js?v=054"></script>
-<script src="/app.js?v=054"></script>
-<!-- Page analytics (Hanzo Analytics / Umami, scoped to the Karma org) -->
-<script defer src="https://analytics.hanzo.ai/script.js" data-website-id="019cc3e3-0062-48e1-9f8d-3110079881d9" data-domains="karma.style,www.karma.style"></script>
-<script>window.karmaTrack=function(n,d){try{window.umami&&window.umami.track(n,d||{})}catch(e){}};</script>
+<script src="/analytics.js?v=055"></script>
+<script src="/checkout.js?v=055"></script>
+<script src="/replay.js?v=055"></script>
+<script src="/app.js?v=055"></script>
 <!-- KARMA_AI_WIDGET -->
 </body>
 </html>

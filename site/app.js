@@ -382,7 +382,7 @@
     e.preventDefault();
     var email = byId("newsEmail").value.trim(); if (!email) return;
     var ep = (window.KARMA_NEWSLETTER_ENDPOINT || "");
-    var done = function () { byId("newsOk").textContent = "You're on the list."; newsForm.reset(); if (window.karmaTrack) window.karmaTrack("newsletter_signup", {}); };
+    var done = function () { byId("newsOk").textContent = "You're on the list."; newsForm.reset(); if (window.karmaEcom) window.karmaEcom.track("newsletter_signup", {}); };
     if (ep) { fetch(ep, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: email, source: "karma.style" }) }).then(done).catch(done); }
     else { try { localStorage.setItem("karma_news", email); } catch (x) {} done(); }
   });

@@ -1,6 +1,6 @@
 // Karma Bikinis — the Journal. PRIMARY source is the public Hanzo CMS
 // (cms.hanzo.ai, karma tenant), reached SAME-ORIGIN via the hanzoai/spa
-// PROXY_API mount (/api/* -> in-cluster `cms` Service on the karma-style CR) so
+// PROXY_API mount (/v1/cms/* -> in-cluster `cms` Service on the karma-style CR) so
 // there is no CORS and reads sit behind the same gate/edge as the site. Each
 // published CMS page is a Lexical richText doc; mapCMS() renders it
 // (headings / paragraphs / lists / bold / italic / code / links + an upload
@@ -14,10 +14,10 @@
 // KARMA_JOURNAL.render(el, slug).
 window.KARMA_JOURNAL = (function () {
   var V = (window.KARMA_ASSET_V || "1");
-  // Same-origin CMS base: hanzoai/spa reverse-proxies /api/* to the cms Service
+  // Same-origin CMS base: hanzoai/spa reverse-proxies /v1/cms/* to the cms Service
   // when PROXY_API is set on the karma-style CR. The tenant comes from the CR
   // too (SPA_CMS_TENANT_ID -> /config.json cmsTenantId, read via KARMA_CONFIG).
-  var CMS_BASE = "/api";
+  var CMS_BASE = "/v1/cms";
   var cache = null;
 
   function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
@@ -57,7 +57,7 @@ window.KARMA_JOURNAL = (function () {
   }
   function mediaURL(v) {
     if (!v || typeof v !== "object") return "";
-    // value.url is already the same-origin CMS path (/api/media/file/..?prefix=hanzo).
+    // value.url is already the same-origin CMS path (/v1/cms/media/file/..?prefix=hanzo).
     return v.url || (v.filename ? CMS_BASE + "/media/file/" + encodeURIComponent(v.filename) + "?prefix=hanzo" : "");
   }
   function kids(n) { return (n.children || []).map(lx).join(""); }
@@ -122,7 +122,7 @@ window.KARMA_JOURNAL = (function () {
     if (!p.hero) return "";
     // Local /img assets take the release cache-bust; CMS /api (already carries
     // ?prefix=hanzo) and absolute URLs are used verbatim.
-    var src = (/^(https?:)?\/\//.test(p.hero) || p.hero.indexOf("/api/") === 0) ? p.hero : (p.hero + "?v=" + V);
+    var src = (/^(https?:)?\/\//.test(p.hero) || p.hero.indexOf("/v1/cms/") === 0) ? p.hero : (p.hero + "?v=" + V);
     return '<img src="' + src + '" alt="" loading="lazy">';
   }
 
